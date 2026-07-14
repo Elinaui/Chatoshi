@@ -1,9 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
+import btcImg from '../assets/coins/btc.png'
+import bnbImg from '../assets/coins/bnb.png'
+import bonkImg from '../assets/coins/bonk.png'
 import './ChatView.css'
 
 const CHIPS = [
   'News & Sentiment', 'Crypto Fundamentals', 'X & Socials',
-  'Trader Information', 'Blockchain Explorer', 'Guard & Alpha', 'Analytics & Insights'
+  'Trader Information', 'Blockchain Explorer', 'Guard & Alpha', 'Analytics & Insights',
 ]
 
 const QUESTIONS = [
@@ -16,55 +19,56 @@ const QUESTIONS = [
   'Explain DeFi in simple terms.',
 ]
 
-const MOCK_COINS = (query) => {
-  const q = query.toLowerCase()
-  const all = [
-    { symbol: 'BTC', name: 'Bitcoin', price: '$67,144', change: '+2.3', pos: true },
-    { symbol: 'ETH', name: 'Ethereum', price: '$3,210', change: '-1.2', pos: false },
-    { symbol: 'BNB', name: 'BNB', price: '$610', change: '+8.7', pos: true },
-    { symbol: 'SOL', name: 'Solana', price: '$178', change: '+4.1', pos: true },
-    { symbol: 'ADA', name: 'Cardano', price: '$0.52', change: '-0.8', pos: false },
-    { symbol: 'AVAX', name: 'Avalanche', price: '$41', change: '+3.2', pos: true },
-    { symbol: 'DOT', name: 'Polkadot', price: '$8.90', change: '-2.1', pos: false },
-    { symbol: 'DOGE', name: 'Dogecoin', price: '$0.18', change: '+1.5', pos: true },
-    { symbol: 'XRP', name: 'XRP', price: '$0.62', change: '+0.7', pos: true },
-  ]
-  if (!q) return all.slice(0, 3)
-  return all.filter(c => c.symbol.toLowerCase().startsWith(q) || c.name.toLowerCase().startsWith(q)).slice(0, 4)
-}
+const ALL_COINS = [
+  { symbol: 'BTC', name: 'Bitcoin', price: '$67,240', change: '+2.3', pos: true, img: btcImg },
+  { symbol: 'BNB', name: 'BNB', price: '$310', change: '-1.2', pos: false, img: bnbImg },
+  { symbol: 'BONK', name: 'BONK', price: '$0.000021', change: '+8.1', pos: true, img: bonkImg },
+  { symbol: 'ETH', name: 'Ethereum', price: '$3,210', change: '-0.8', pos: false, img: null },
+  { symbol: 'SOL', name: 'Solana', price: '$178', change: '+4.1', pos: true, img: null },
+  { symbol: 'XRP', name: 'XRP', price: '$0.62', change: '+0.7', pos: true, img: null },
+  { symbol: 'ADA', name: 'Cardano', price: '$0.52', change: '-1.5', pos: false, img: null },
+  { symbol: 'AVAX', name: 'Avalanche', price: '$41', change: '+3.2', pos: true, img: null },
+  { symbol: 'DOGE', name: 'Dogecoin', price: '$0.18', change: '+1.5', pos: true, img: null },
+]
 
-const MOCK_INFLUENCERS = (q) => {
-  const all = [
-    { name: 'Brian Armstrong', sub: 'CEO & Co-founder of Coinbase', initials: 'BA' },
-    { name: 'Ben Armstrong', sub: 'Known as BitBoy Crypto', initials: 'BA' },
-    { name: 'Balaji Srinivasan', sub: 'Former CTO of Coinbase', initials: 'BS' },
-    { name: 'Vitalik Buterin', sub: 'Co-founder of Ethereum', initials: 'VB' },
-    { name: 'CZ Binance', sub: 'Founder of Binance', initials: 'CZ' },
-  ]
-  if (!q) return all.slice(0, 3)
-  return all.filter(p => p.name.toLowerCase().startsWith(q.toLowerCase())).slice(0, 3)
-}
+const ALL_PEOPLE = [
+  { name: 'Brian Armstrong', sub: 'CEO & Co-founder of Coinbase', initials: 'BA' },
+  { name: 'Ben Armstrong', sub: 'Known as BitBoy Crypto', initials: 'BA' },
+  { name: 'Balaji Srinivasan', sub: 'Former CTO of Coinbase', initials: 'BS' },
+  { name: 'Vitalik Buterin', sub: 'Co-founder of Ethereum', initials: 'VB' },
+]
 
-const MOCK_LISTS = [
+const LISTS = [
   { name: 'Bullish Memes', desc: 'Top performing meme coins this week • 15 coins' },
   { name: 'Blue Chip Coins', desc: 'Established cryptocurrencies with high market cap • 8 coins' },
 ]
+
+function filterCoins(q) {
+  if (!q) return ALL_COINS.slice(0, 3)
+  const lq = q.toLowerCase()
+  return ALL_COINS.filter(c => c.symbol.toLowerCase().startsWith(lq) || c.name.toLowerCase().startsWith(lq)).slice(0, 4)
+}
+
+function filterPeople(q) {
+  if (!q) return ALL_PEOPLE.slice(0, 3)
+  const lq = q.toLowerCase()
+  return ALL_PEOPLE.filter(p => p.name.toLowerCase().startsWith(lq)).slice(0, 3)
+}
 
 export default function ChatView({ state, query, responseData, onSearch, onSend, onBack }) {
   const [input, setInput] = useState('')
   const [focused, setFocused] = useState(false)
   const inputRef = useRef(null)
 
-  useEffect(() => {
-    if (state === 'home') setInput('')
-  }, [state])
+  useEffect(() => { if (state === 'home') setInput('') }, [state])
 
-  const handleInputChange = (e) => {
+  const displayValue = state === 'search' ? query : input
+
+  const handleChange = (e) => {
     const val = e.target.value
     setInput(val)
-    if (val.trim()) {
-      onSearch(val)
-    }
+    if (val.trim()) onSearch(val)
+    else if (state === 'search') onBack()
   }
 
   const handleSend = () => {
@@ -72,81 +76,60 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
     if (text) onSend(text)
   }
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSend()
-    }
-  }
-
-  const handleChipClick = (chip) => {
-    setInput(chip)
-    onSend(chip)
-  }
-
-  const handleQuestionClick = (q) => {
-    setInput(q)
-    onSend(q)
-  }
-
-  const handleCoinClick = (coin) => {
-    onSend(`Tell me about ${coin.name} (${coin.symbol})`)
+  const handleKey = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend() }
   }
 
   return (
-    <div className="chat-view">
-      <div className="chat-topbar">
-        <div className="mode-selector">
-          <SentimentIcon />
-          <span>Sentient</span>
-          <ChevronDownIcon />
-        </div>
-        <div className="topbar-right">
-          <button className="icon-btn" title="Settings"><SettingsIcon /></button>
-        </div>
+    <div className="cv-shell">
+      <div className="cv-topbar">
+        <button className="cv-mode-btn">
+          <span className="msi cv-mode-icon">sentiment_satisfied</span>
+          Sentient
+          <span className="msi cv-chevron">keyboard_arrow_down</span>
+        </button>
+        <button className="cv-topbar-action">
+          <span className="msi">more_horiz</span>
+        </button>
       </div>
 
-      <div className="chat-body">
+      <div className="cv-body">
         {state === 'home' && (
-          <HomeState
-            onChipClick={handleChipClick}
-            onQuestionClick={handleQuestionClick}
+          <HomeView
+            onChip={(c) => { setInput(c); onSend(c) }}
+            onQuestion={(q) => { setInput(q); onSend(q) }}
           />
         )}
         {state === 'search' && (
-          <SearchState
+          <SearchView
             query={query}
-            onCoinClick={handleCoinClick}
-            onInfluencerClick={(name) => onSend(`Tell me about ${name}`)}
-            onListClick={(name) => onSend(`Show me the ${name} list`)}
+            onCoin={(coin) => onSend(`Tell me about ${coin.name} (${coin.symbol})`)}
+            onPerson={(p) => onSend(`Tell me about ${p.name}`)}
+            onList={(l) => onSend(`Show me the ${l.name} list`)}
           />
         )}
         {state === 'response' && (
-          <ResponseState
-            query={responseData?.query || query}
-            onBack={onBack}
-          />
+          <ResponseView query={responseData?.query || query} onBack={onBack} />
         )}
       </div>
 
-      <div className="chat-input-wrap">
-        <div className={`chat-input-box ${focused ? 'focused' : ''}`}>
+      <div className="cv-input-area">
+        <div className={`cv-prompt ${focused ? 'focused' : ''}`}>
           <input
             ref={inputRef}
-            value={state === 'search' ? query : input}
-            onChange={handleInputChange}
+            className="cv-input"
+            value={displayValue}
+            onChange={handleChange}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            onKeyDown={handleKeyDown}
+            onKeyDown={handleKey}
             placeholder="Ask anything about crypto"
-            className="chat-input"
           />
-          <button
-            className={`send-btn ${(input.trim() || query) ? 'active' : ''}`}
-            onClick={handleSend}
-            title="Send"
-          >
-            <SendIcon />
+          <button className="cv-mic-btn">
+            <span className="msi">mic</span>
+          </button>
+          <button className={`cv-send-btn ${displayValue ? 'active' : ''}`} onClick={handleSend}>
+            <span className="msi">auto_awesome</span>
           </button>
         </div>
       </div>
@@ -154,21 +137,20 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
   )
 }
 
-function HomeState({ onChipClick, onQuestionClick }) {
+/* ── HOME ── */
+function HomeView({ onChip, onQuestion }) {
   return (
-    <div className="home-state">
+    <div className="home-view">
       <div className="home-center">
-        <h1 className="home-title">Which part of crypto should we dig into?</h1>
-        <div className="chips-wrap">
-          {CHIPS.map(chip => (
-            <button key={chip} className="chip" onClick={() => onChipClick(chip)}>{chip}</button>
+        <p className="home-title">Which part of crypto should we dig into?</p>
+        <div className="home-chips">
+          {CHIPS.map(c => (
+            <button key={c} className="chip-btn" onClick={() => onChip(c)}>{c}</button>
           ))}
         </div>
-        <div className="questions-carousel">
+        <div className="home-carousel">
           {QUESTIONS.map((q, i) => (
-            <button key={i} className="question-card" onClick={() => onQuestionClick(q)}>
-              {q}
-            </button>
+            <button key={i} className="q-card" onClick={() => onQuestion(q)}>{q}</button>
           ))}
         </div>
       </div>
@@ -176,238 +158,231 @@ function HomeState({ onChipClick, onQuestionClick }) {
   )
 }
 
-function SearchState({ query, onCoinClick, onInfluencerClick, onListClick }) {
-  const coins = MOCK_COINS(query)
-  const influencers = MOCK_INFLUENCERS(query)
+/* ── SEARCH ── */
+function SearchView({ query, onCoin, onPerson, onList }) {
+  const coins = filterCoins(query)
+  const people = filterPeople(query)
 
   return (
-    <div className="search-state">
+    <div className="search-view">
       {coins.length > 0 && (
-        <section className="result-section">
-          <div className="section-header">
-            <span className="section-title">Coins</span>
-            <button className="show-more">Show more</button>
+        <section className="sv-section">
+          <div className="sv-section-hdr">
+            <span className="sv-title">Coins</span>
+            <button className="sv-show-more">Show more</button>
           </div>
-          {coins.map(coin => (
-            <button key={coin.symbol} className="result-row coin-row" onClick={() => onCoinClick(coin)}>
-              <div className="coin-icon">{coin.symbol[0]}</div>
-              <div className="coin-info">
-                <span className="coin-symbol">{coin.symbol}</span>
-                <span className="coin-sub">{coin.name} • ${coin.price.replace('$', '')}</span>
+          <div className="sv-card">
+            {coins.map((coin, i) => (
+              <div key={coin.symbol}>
+                {i > 0 && <div className="sv-divider" />}
+                <button className="sv-row" onClick={() => onCoin(coin)}>
+                  <div className="sv-coin-wrap">
+                    {coin.img
+                      ? <img src={coin.img} alt={coin.symbol} className="sv-coin-img" />
+                      : <span className="sv-coin-letter">{coin.symbol[0]}</span>}
+                  </div>
+                  <div className="sv-info">
+                    <span className="sv-primary">{coin.symbol}</span>
+                    <span className="sv-secondary">{coin.name} • {coin.price}</span>
+                  </div>
+                  <div className={`sv-stat ${coin.pos ? 'pos' : 'neg'}`}>
+                    <span className="msi sv-arrow">{coin.pos ? 'arrow_upward_alt' : 'arrow_downward_alt'}</span>
+                    <span className="sv-pct">{coin.change}%</span>
+                  </div>
+                  <span className="msi sv-arr-right">keyboard_arrow_right</span>
+                </button>
               </div>
-              <span className={`coin-change ${coin.pos ? 'pos' : 'neg'}`}>
-                {coin.change}%
-                {coin.pos ? <ArrowUpIcon /> : <ArrowDownIcon />}
-              </span>
-            </button>
-          ))}
+            ))}
+          </div>
         </section>
       )}
 
-      {influencers.length > 0 && (
-        <section className="result-section">
-          <div className="section-header">
-            <span className="section-title">Influencers</span>
-            <button className="show-more">Show more</button>
+      {people.length > 0 && (
+        <section className="sv-section">
+          <div className="sv-section-hdr">
+            <span className="sv-title">Influencers</span>
+            <button className="sv-show-more">Show more</button>
           </div>
-          {influencers.map(p => (
-            <button key={p.name} className="result-row person-row" onClick={() => onInfluencerClick(p.name)}>
-              <div className="person-avatar">{p.initials}</div>
-              <div className="person-info">
-                <span className="person-name">{p.name}</span>
-                <span className="person-sub">{p.sub}</span>
+          <div className="sv-card">
+            {people.map((p, i) => (
+              <div key={p.name}>
+                {i > 0 && <div className="sv-divider" />}
+                <button className="sv-row" onClick={() => onPerson(p)}>
+                  <div className="sv-person-av">{p.initials}</div>
+                  <div className="sv-info">
+                    <span className="sv-primary">{p.name}</span>
+                    <span className="sv-secondary">{p.sub}</span>
+                  </div>
+                  <span className="msi sv-arr-right">keyboard_arrow_right</span>
+                </button>
               </div>
-              <ChevronRightIcon />
-            </button>
-          ))}
+            ))}
+          </div>
         </section>
       )}
 
-      <section className="result-section">
-        <div className="section-header">
-          <span className="section-title">Curated Lists</span>
+      <section className="sv-section">
+        <div className="sv-section-hdr">
+          <span className="sv-title">Curated Lists</span>
         </div>
-        {MOCK_LISTS.map(list => (
-          <button key={list.name} className="result-row list-row" onClick={() => onListClick(list.name)}>
-            <div className="list-info">
-              <span className="list-name">{list.name}</span>
-              <span className="list-desc">{list.desc}</span>
+        <div className="sv-card">
+          {LISTS.map((l, i) => (
+            <div key={l.name}>
+              {i > 0 && <div className="sv-divider" />}
+              <button className="sv-row" onClick={() => onList(l)}>
+                <div className="sv-list-icon"><span className="msi">format_list_bulleted</span></div>
+                <div className="sv-info">
+                  <span className="sv-primary">{l.name}</span>
+                  <span className="sv-secondary">{l.desc}</span>
+                </div>
+                <span className="msi sv-arr-right">keyboard_arrow_right</span>
+              </button>
             </div>
-            <ChevronRightIcon />
-          </button>
-        ))}
+          ))}
+        </div>
       </section>
     </div>
   )
 }
 
-const CHART_POINTS = [
-  { x: 0, y: 80 }, { x: 8, y: 70 }, { x: 16, y: 75 }, { x: 24, y: 60 },
-  { x: 32, y: 65 }, { x: 40, y: 45 }, { x: 48, y: 55 }, { x: 56, y: 40 },
-  { x: 64, y: 50 }, { x: 72, y: 35 }, { x: 80, y: 38 }, { x: 88, y: 25 },
-  { x: 96, y: 20 }, { x: 100, y: 18 },
-]
+/* ── RESPONSE ── */
+const CHART_Y = [80, 72, 76, 62, 66, 46, 56, 42, 52, 36, 38, 26, 22, 18]
 
-function MiniChart() {
-  const points = CHART_POINTS.map(p => `${p.x * 2.8},${p.y}`).join(' ')
-  const areaPoints = `0,100 ${points} 280,100`
+function SparkLine() {
+  const w = 280, h = 100
+  const pts = CHART_Y.map((y, i) => `${(i / (CHART_Y.length - 1)) * w},${y}`).join(' ')
+  const area = `0,${h} ${pts} ${w},${h}`
   return (
-    <svg className="mini-chart" viewBox="0 0 280 100" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="rv-chart">
       <defs>
-        <linearGradient id="chartGrad" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#22C55E" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="#22C55E" stopOpacity="0" />
+        <linearGradient id="sg" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#006347" stopOpacity="0.25" />
+          <stop offset="100%" stopColor="#006347" stopOpacity="0" />
         </linearGradient>
       </defs>
-      <polygon points={areaPoints} fill="url(#chartGrad)" />
-      <polyline points={points} fill="none" stroke="#22C55E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <polygon points={area} fill="url(#sg)" />
+      <polyline points={pts} fill="none" stroke="#006347" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
 
-function ResponseState({ query, onBack }) {
-  const isBNB = query.toLowerCase().includes('bnb') || query.toLowerCase().includes('binance')
-  const coin = {
-    name: isBNB ? 'BNB' : 'Bitcoin',
-    symbol: isBNB ? 'BNB' : 'BTC',
-    price: isBNB ? '$615.40' : '$67,144',
-    change: isBNB ? '+8.7%' : '+2.3%',
-    pos: true,
-    marketCap: isBNB ? '$88.4B' : '$1.32T',
-    volume: isBNB ? '$2.1B' : '$32.4B',
-    supply: isBNB ? '145.9M BNB' : '19.7M BTC',
-    rank: isBNB ? '#4' : '#1',
-  }
+function ResponseView({ query, onBack }) {
+  const [activeTab, setActiveTab] = useState('overview')
+  const isBNB = /bnb|binance/i.test(query)
+  const coin = isBNB
+    ? { name: 'BNB', symbol: 'BNB', price: '$615.40', change: '+8.7%', pos: true, cap: '$88.4B', vol: '$2.1B', supply: '145.9M BNB', rank: '#4', img: bnbImg }
+    : { name: 'Bitcoin', symbol: 'BTC', price: '$67,240', change: '+2.3%', pos: true, cap: '$1.32T', vol: '$32.4B', supply: '19.7M BTC', rank: '#1', img: btcImg }
 
   return (
-    <div className="response-state">
-      <button className="back-btn" onClick={onBack}>
-        <ChevronLeftIcon /> Back
+    <div className="rv-shell">
+      <button className="rv-back" onClick={onBack}>
+        <span className="msi rv-back-icon">arrow_back</span>
+        Back
       </button>
 
-      <div className="response-coin-header">
-        <div className="coin-header-left">
-          <div className="coin-icon-lg">{coin.symbol[0]}</div>
+      <div className="rv-header">
+        <div className="rv-header-left">
+          <div className="rv-coin-img-wrap">
+            {coin.img ? <img src={coin.img} alt={coin.symbol} className="rv-coin-img" /> : <span className="rv-coin-fallback">{coin.symbol[0]}</span>}
+          </div>
           <div>
-            <h2 className="coin-name-lg">{coin.name} <span className="coin-sym-badge">{coin.symbol}</span></h2>
-            <div className="coin-price-row">
-              <span className="coin-price-lg">{coin.price}</span>
-              <span className={`coin-chg-lg ${coin.pos ? 'pos' : 'neg'}`}>{coin.change}</span>
+            <div className="rv-coin-name">
+              {coin.name}
+              <span className="rv-sym">{coin.symbol}</span>
+            </div>
+            <div className="rv-price-row">
+              <span className="rv-price">{coin.price}</span>
+              <span className={`rv-change ${coin.pos ? 'pos' : 'neg'}`}>
+                <span className="msi rv-chg-arrow">{coin.pos ? 'arrow_upward_alt' : 'arrow_downward_alt'}</span>
+                {coin.change}
+              </span>
             </div>
           </div>
         </div>
-        <div className="chart-wrap">
-          <MiniChart />
-        </div>
+        <div className="rv-chart-wrap"><SparkLine /></div>
       </div>
 
-      <div className="stats-grid">
-        <div className="stat-card"><span className="stat-label">Market Cap</span><span className="stat-val">{coin.marketCap}</span></div>
-        <div className="stat-card"><span className="stat-label">24h Volume</span><span className="stat-val">{coin.volume}</span></div>
-        <div className="stat-card"><span className="stat-label">Circulating Supply</span><span className="stat-val">{coin.supply}</span></div>
-        <div className="stat-card"><span className="stat-label">Rank</span><span className="stat-val">{coin.rank}</span></div>
+      <div className="rv-stats">
+        {[['Market Cap', coin.cap], ['24h Volume', coin.vol], ['Circulating Supply', coin.supply], ['Rank', coin.rank]].map(([l, v]) => (
+          <div key={l} className="rv-stat">
+            <span className="rv-stat-label">{l}</span>
+            <span className="rv-stat-val">{v}</span>
+          </div>
+        ))}
       </div>
 
-      <div className="response-tabs">
-        <button className="resp-tab active">Overview</button>
-        <button className="resp-tab">Community</button>
-        <button className="resp-tab">News</button>
+      <div className="rv-tabs">
+        {['overview', 'community', 'news'].map(tab => (
+          <button key={tab} className={`rv-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
+            {tab[0].toUpperCase() + tab.slice(1)}
+          </button>
+        ))}
       </div>
 
-      <div className="response-content">
-        <div className="response-text">
-          <p>{isBNB
-            ? 'BNB (Binance Coin) is the native cryptocurrency of the Binance ecosystem, one of the largest cryptocurrency exchanges by trading volume. Originally launched as an ERC-20 token on Ethereum in 2017, BNB later migrated to Binance Chain and now powers the BNB Smart Chain (BSC).'
-            : `Bitcoin (BTC) is the world's first and largest cryptocurrency by market capitalization. Created in 2009 by the pseudonymous Satoshi Nakamoto, Bitcoin introduced blockchain technology and decentralized digital currency to the world.`
-          }</p>
-          <p style={{ marginTop: 10 }}>{isBNB
-            ? 'BNB is used to pay transaction fees on the Binance exchange at a discount, participate in token sales on Binance Launchpad, pay for gas on BNB Smart Chain, and many other utilities within the Binance ecosystem.'
-            : 'Bitcoin operates on a proof-of-work consensus mechanism, where miners compete to solve complex mathematical problems to validate transactions and earn newly minted BTC as rewards.'
-          }</p>
-        </div>
-
-        <div className="response-section-title">Market Data</div>
-        <div className="market-data-grid">
-          <div className="md-row"><span>All-Time High</span><span className="md-val">{isBNB ? '$686.31' : '$73,835'}</span></div>
-          <div className="md-row"><span>All-Time Low</span><span className="md-val">{isBNB ? '$0.097' : '$67.81'}</span></div>
-          <div className="md-row"><span>7d Change</span><span className={`md-val pos`}>{isBNB ? '+12.4%' : '+5.8%'}</span></div>
-          <div className="md-row"><span>30d Change</span><span className={`md-val ${isBNB ? 'pos' : 'neg'}`}>{isBNB ? '+28.1%' : '-3.2%'}</span></div>
-        </div>
-
-        <div className="response-section-title">Community</div>
-        <div className="community-links">
-          {[
-            { label: 'Twitter / X', icon: '𝕏', url: '#' },
-            { label: 'Reddit', icon: 'R', url: '#' },
-            { label: 'Telegram', icon: 'T', url: '#' },
-            { label: 'Discord', icon: 'D', url: '#' },
-          ].map(link => (
-            <a key={link.label} href={link.url} className="community-link" target="_blank" rel="noreferrer">
-              <span className="comm-icon">{link.icon}</span>
-              <span>{link.label}</span>
-            </a>
-          ))}
-        </div>
-
-        <div className="response-section-title">Latest News</div>
-        <div className="news-list">
-          {[
-            {
-              title: `${coin.symbol} surges ${coin.change} as institutional demand rises`,
-              source: 'CoinDesk', time: '2h ago',
-            },
-            {
-              title: `${coin.name} ecosystem grows with new DeFi protocol launch`,
-              source: 'CryptoSlate', time: '5h ago',
-            },
-            {
-              title: `Analysts predict ${coin.symbol} could reach new ATH by Q4 2025`,
-              source: 'Decrypt', time: '8h ago',
-            },
-          ].map(news => (
-            <a key={news.title} href="#" className="news-item" onClick={e => e.preventDefault()}>
-              <div className="news-body">
-                <span className="news-title">{news.title}</span>
-                <span className="news-meta">{news.source} · {news.time}</span>
+      {activeTab === 'overview' && (
+        <div className="rv-content">
+          <div className="rv-text-card">
+            <p>{isBNB
+              ? 'BNB (Binance Coin) is the native cryptocurrency of the Binance ecosystem. Originally launched as an ERC-20 token in 2017, BNB migrated to Binance Chain and now powers the BNB Smart Chain, enabling fast and low-cost transactions.'
+              : "Bitcoin (BTC) is the world's first and largest cryptocurrency by market capitalization, created in 2009 by the pseudonymous Satoshi Nakamoto. It introduced blockchain technology and decentralized peer-to-peer digital currency."
+            }</p>
+          </div>
+          <div className="rv-market-card">
+            <div className="rv-market-title">Market Data</div>
+            {[
+              ['All-Time High', isBNB ? '$686.31' : '$73,835', null],
+              ['All-Time Low', isBNB ? '$0.097' : '$67.81', null],
+              ['7d Change', isBNB ? '+12.4%' : '+5.8%', true],
+              ['30d Change', isBNB ? '+28.1%' : '-3.2%', isBNB],
+            ].map(([label, val, pos]) => (
+              <div key={label} className="rv-market-row">
+                <span className="rv-market-label">{label}</span>
+                <span className={`rv-market-val ${pos === true ? 'pos' : pos === false ? 'neg' : ''}`}>{val}</span>
               </div>
-              <ChevronRightIcon />
-            </a>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+
+      {activeTab === 'community' && (
+        <div className="rv-content">
+          <div className="rv-community-grid">
+            {[
+              ['Twitter / X', 'alternate_email'],
+              ['Reddit', 'forum'],
+              ['Telegram', 'send'],
+              ['Discord', 'chat_bubble'],
+              ['GitHub', 'code'],
+              ['Website', 'language'],
+            ].map(([label, icon]) => (
+              <button key={label} className="rv-comm-btn">
+                <span className="msi rv-comm-icon">{icon}</span>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'news' && (
+        <div className="rv-content">
+          <div className="rv-news-list">
+            {[
+              { title: `${coin.symbol} surges ${coin.change} as institutional demand rises`, source: 'CoinDesk', time: '2h ago' },
+              { title: `${coin.name} ecosystem grows with new DeFi protocol launch`, source: 'CryptoSlate', time: '5h ago' },
+              { title: `Analysts predict ${coin.symbol} could reach new ATH by Q4 2025`, source: 'Decrypt', time: '8h ago' },
+            ].map(n => (
+              <button key={n.title} className="rv-news-item">
+                <div className="rv-news-body">
+                  <span className="rv-news-title">{n.title}</span>
+                  <span className="rv-news-meta">{n.source} · {n.time}</span>
+                </div>
+                <span className="msi rv-news-arr">keyboard_arrow_right</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
-}
-
-// Icons
-function SentimentIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-      <circle cx="8" cy="8" r="6.5" stroke="currentColor" strokeWidth="1.3" />
-      <path d="M5 9.5c.8 1 2 1.5 3 1.5s2.2-.5 3-1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
-      <circle cx="6" cy="7" r="0.8" fill="currentColor" />
-      <circle cx="10" cy="7" r="0.8" fill="currentColor" />
-    </svg>
-  )
-}
-function ChevronDownIcon() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 5l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-function ChevronRightIcon() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-function ChevronLeftIcon() {
-  return <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 3l-4 4 4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-function SettingsIcon() {
-  return <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.4" /><path d="M9 1.5v2M9 14.5v2M1.5 9h2M14.5 9h2M3.7 3.7l1.4 1.4M12.9 12.9l1.4 1.4M3.7 14.3l1.4-1.4M12.9 5.1l1.4-1.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" /></svg>
-}
-function SendIcon() {
-  return <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M2 2l14 7-14 7V10l10-1L2 8V2Z" fill="currentColor" /></svg>
-}
-function ArrowUpIcon() {
-  return <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 8V2M2 5l3-3 3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
-}
-function ArrowDownIcon() {
-  return <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 2v6M8 5l-3 3-3-3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
 }

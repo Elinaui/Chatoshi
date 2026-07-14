@@ -5,45 +5,95 @@
 }
 
 :root {
-  --bg: #F2F2F4;
-  --sidebar-bg: #FFFFFF;
-  --sidebar-expanded: 280px;
-  --sidebar-collapsed: 56px;
-  --accent: #6C7EF7;
-  --accent-light: rgba(108, 126, 247, 0.1);
-  --text-primary: #0F0F10;
-  --text-secondary: #6B7280;
-  --text-muted: #9CA3AF;
-  --border: #E5E7EB;
-  --card-bg: #FFFFFF;
-  --green: #22C55E;
-  --red: #EF4444;
+  /* ── Exact Figma design tokens ── */
+  --surface-primary: #ebeef0;
+  --surface-secondary: #fefefe;
+  --surface-prompt: #ffffff;
+  --bg-floating: #fcfdfd;
+
+  --border-primary: #dadfe3;
+  --border-neutral: #dddcde;
+  --border-secondary: #ebeef0;
+
+  --text-primary: #252d32;
+  --text-secondary: #3b474f;
+  --text-tertiary: #4f5f69;
+
+  --accent: #1d4ed8;
+  --accent-light: rgba(29, 78, 216, 0.08);
+  --brand-secondary: #d1dbf9;
+  --on-brand-secondary: #06102b;
+
+  --tag-primary: #446ee6;
+  --tag-on-primary: #f2f5fd;
+
+  --success: #006347;
+  --error: #9d2a2f;
+
+  --elevation: rgba(31,37,41,0.08);
+
+  /* Radii */
+  --r4: 4px;
+  --r8: 8px;
+  --r12: 12px;
+  --r16: 16px;
+
+  /* Fonts */
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-heading: 'Onest', 'Inter', sans-serif;
+
+  /* Font sizes */
+  --fs-caption: 12px;
+  --fs-sub: 14px;
+  --fs-body: 16px;
+  --fs-h4: 18px;
+
+  /* Line heights */
+  --lh-caption: 16px;
+  --lh-sub: 20px;
+  --lh-body: 22px;
+
+  /* Sidebar widths */
+  --sidebar-expanded: 322px;
+  --sidebar-collapsed: 58px;
   --topbar-h: 56px;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
 
-html, body {
-  height: 100%;
-  width: 100%;
-}
-
-#root {
-  height: 100%;
-  width: 100%;
-}
-
-body {
-  background: var(--bg);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
   color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+}
+
+body { background: var(--surface-primary); }
 
 a { color: inherit; text-decoration: none; }
-button { cursor: pointer; font-family: inherit; border: none; background: none; }
-input { font-family: inherit; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; padding: 0; }
+input, textarea { font-family: inherit; border: none; outline: none; background: none; }
+
+/* Material Symbols icon helper */
+.msi {
+  font-family: 'Material Symbols Rounded';
+  font-weight: 300;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+}
+.msi-sm { font-size: 18px; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 4px; }
