@@ -2,11 +2,18 @@ import { useState, useRef, useEffect } from 'react'
 import btcImg from '../assets/coins/btc.png'
 import bnbImg from '../assets/coins/bnb.png'
 import bonkImg from '../assets/coins/bonk.png'
+import chatoshiIcon from '../assets/chatoshi-icon.png'
 import './ChatView.css'
 
+// Chip labels exactly from Figma
 const CHIPS = [
-  'News & Sentiment', 'Crypto Fundamentals', 'X & Socials',
-  'Trader Information', 'Blockchain Explorer', 'Guard & Alpha', 'Analytics & Insights',
+  'News & Sentiment',
+  'Crypto Fundamentals',
+  'X & Socials',
+  'Token Information',
+  'Blockchain Explorer',
+  'Quant & Alpha',
+  'Analytics & Insights',
 ]
 
 const QUESTIONS = [
@@ -14,39 +21,42 @@ const QUESTIONS = [
   'Explain the double-spending problem and its solution in cryptocurrency.',
   'What are the social links for XRP?',
   'What is Pepe?',
-  'How does Ethereum staking work?',
-  'What is the Bitcoin halving?',
-  'Explain DeFi in simple terms.',
+  'What is the latest crypto news?',
+  'Explain the double-spending problem and its solution in cryptocurrency.',
+  'What are the social links for XRP?',
+  'What is Pepe?',
 ]
 
 const ALL_COINS = [
-  { symbol: 'BTC', name: 'Bitcoin', price: '$67,240', change: '+2.3', pos: true, img: btcImg },
-  { symbol: 'BNB', name: 'BNB', price: '$310', change: '-1.2', pos: false, img: bnbImg },
-  { symbol: 'BONK', name: 'BONK', price: '$0.000021', change: '+8.1', pos: true, img: bonkImg },
-  { symbol: 'ETH', name: 'Ethereum', price: '$3,210', change: '-0.8', pos: false, img: null },
-  { symbol: 'SOL', name: 'Solana', price: '$178', change: '+4.1', pos: true, img: null },
-  { symbol: 'XRP', name: 'XRP', price: '$0.62', change: '+0.7', pos: true, img: null },
-  { symbol: 'ADA', name: 'Cardano', price: '$0.52', change: '-1.5', pos: false, img: null },
-  { symbol: 'AVAX', name: 'Avalanche', price: '$41', change: '+3.2', pos: true, img: null },
-  { symbol: 'DOGE', name: 'Dogecoin', price: '$0.18', change: '+1.5', pos: true, img: null },
+  { symbol: 'BTC', name: 'Bitcoin',   price: '$67,240',    change: '+2.3', pos: true,  img: btcImg  },
+  { symbol: 'BNB', name: 'BNB',       price: '$310',       change: '-1.2', pos: false, img: bnbImg  },
+  { symbol: 'BONK',name: 'BONK',      price: '$0.000021',  change: '+8.1', pos: true,  img: bonkImg },
+  { symbol: 'ETH', name: 'Ethereum',  price: '$3,210',     change: '-0.8', pos: false, img: null    },
+  { symbol: 'SOL', name: 'Solana',    price: '$178',       change: '+4.1', pos: true,  img: null    },
+  { symbol: 'XRP', name: 'XRP',       price: '$0.62',      change: '+0.7', pos: true,  img: null    },
+  { symbol: 'ADA', name: 'Cardano',   price: '$0.52',      change: '-1.5', pos: false, img: null    },
+  { symbol: 'AVAX',name: 'Avalanche', price: '$41',        change: '+3.2', pos: true,  img: null    },
+  { symbol: 'DOGE',name: 'Dogecoin',  price: '$0.18',      change: '+1.5', pos: true,  img: null    },
 ]
 
 const ALL_PEOPLE = [
-  { name: 'Brian Armstrong', sub: 'CEO & Co-founder of Coinbase', initials: 'BA' },
-  { name: 'Ben Armstrong', sub: 'Known as BitBoy Crypto', initials: 'BA' },
-  { name: 'Balaji Srinivasan', sub: 'Former CTO of Coinbase', initials: 'BS' },
-  { name: 'Vitalik Buterin', sub: 'Co-founder of Ethereum', initials: 'VB' },
+  { name: 'Brian Armstrong',   sub: 'CEO & Co-founder of Coinbase', initials: 'BA' },
+  { name: 'Ben Armstrong',     sub: 'Known as BitBoy Crypto',       initials: 'BA' },
+  { name: 'Balaji Srinivasan', sub: 'Former CTO of Coinbase',       initials: 'BS' },
+  { name: 'Vitalik Buterin',   sub: 'Co-founder of Ethereum',       initials: 'VB' },
 ]
 
 const LISTS = [
-  { name: 'Bullish Memes', desc: 'Top performing meme coins this week • 15 coins' },
+  { name: 'Bullish Memes',   desc: 'Top performing meme coins this week • 15 coins' },
   { name: 'Blue Chip Coins', desc: 'Established cryptocurrencies with high market cap • 8 coins' },
 ]
 
 function filterCoins(q) {
   if (!q) return ALL_COINS.slice(0, 3)
   const lq = q.toLowerCase()
-  return ALL_COINS.filter(c => c.symbol.toLowerCase().startsWith(lq) || c.name.toLowerCase().startsWith(lq)).slice(0, 4)
+  return ALL_COINS.filter(c =>
+    c.symbol.toLowerCase().startsWith(lq) || c.name.toLowerCase().startsWith(lq)
+  ).slice(0, 4)
 }
 
 function filterPeople(q) {
@@ -56,7 +66,7 @@ function filterPeople(q) {
 }
 
 export default function ChatView({ state, query, responseData, onSearch, onSend, onBack }) {
-  const [input, setInput] = useState('')
+  const [input, setInput]   = useState('')
   const [focused, setFocused] = useState(false)
   const inputRef = useRef(null)
 
@@ -82,30 +92,47 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
 
   return (
     <div className="cv-shell">
+
+      {/* ── Top bar: transparent, Serious mode + temp-chat button ── */}
       <div className="cv-topbar">
+        <div className="cv-topbar-left" />
+
         <button className="cv-mode-btn">
-          <span className="msi cv-mode-icon">sentiment_satisfied</span>
-          Sentient
-          <span className="msi cv-chevron">keyboard_arrow_down</span>
+          <img src={chatoshiIcon} alt="" className="cv-mode-logo" />
+          <span className="cv-mode-label">Serious</span>
+          <span className="msi cv-mode-chevron">keyboard_arrow_down</span>
         </button>
-        <button className="cv-topbar-action">
-          <span className="msi">more_horiz</span>
-        </button>
+
+        {/* Temporary chat button — placeholder icon until SVG provided */}
+        <div className="cv-topbar-right">
+          <button className="cv-temp-btn" title="Temporary chat">
+            <span className="msi">chat_bubble_outline</span>
+          </button>
+        </div>
       </div>
 
+      {/* ── Body ── */}
       <div className="cv-body">
         {state === 'home' && (
           <HomeView
             onChip={(c) => { setInput(c); onSend(c) }}
             onQuestion={(q) => { setInput(q); onSend(q) }}
+            inputValue={input}
+            focused={focused}
+            onChange={handleChange}
+            onFocus={() => setFocused(true)}
+            onBlur={() => setFocused(false)}
+            onKey={handleKey}
+            onSend={handleSend}
+            inputRef={inputRef}
           />
         )}
         {state === 'search' && (
           <SearchView
             query={query}
-            onCoin={(coin) => onSend(`Tell me about ${coin.name} (${coin.symbol})`)}
-            onPerson={(p) => onSend(`Tell me about ${p.name}`)}
-            onList={(l) => onSend(`Show me the ${l.name} list`)}
+            onCoin={(coin)  => onSend(`Tell me about ${coin.name} (${coin.symbol})`)}
+            onPerson={(p)   => onSend(`Tell me about ${p.name}`)}
+            onList={(l)     => onSend(`Show me the ${l.name} list`)}
           />
         )}
         {state === 'response' && (
@@ -113,54 +140,120 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
         )}
       </div>
 
-      <div className="cv-input-area">
-        <div className={`cv-prompt ${focused ? 'focused' : ''}`}>
-          <input
-            ref={inputRef}
-            className="cv-input"
+      {/* ── Floating input (search + response states only) ── */}
+      {state !== 'home' && (
+        <div className="cv-input-area">
+          <PromptInput
             value={displayValue}
+            focused={focused}
             onChange={handleChange}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            onKeyDown={handleKey}
-            placeholder="Ask anything about crypto"
+            onKey={handleKey}
+            onSend={handleSend}
+            inputRef={inputRef}
           />
-          <button className="cv-mic-btn">
-            <span className="msi">mic</span>
-          </button>
-          <button className={`cv-send-btn ${displayValue ? 'active' : ''}`} onClick={handleSend}>
-            <span className="msi">auto_awesome</span>
-          </button>
         </div>
-      </div>
+      )}
     </div>
   )
 }
 
-/* ── HOME ── */
-function HomeView({ onChip, onQuestion }) {
+/* ── Shared prompt input ── */
+function PromptInput({ value, focused, onChange, onFocus, onBlur, onKey, onSend, inputRef }) {
+  return (
+    <div className={`cv-prompt ${focused ? 'focused' : ''}`}>
+      <input
+        ref={inputRef}
+        className="cv-input"
+        value={value}
+        onChange={onChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
+        onKeyDown={onKey}
+        placeholder="Ask anything about crypto"
+      />
+      <button className="cv-mic-btn">
+        <span className="msi">mic</span>
+      </button>
+      <button className={`cv-send-btn ${value ? 'active' : ''}`} onClick={onSend}>
+        <span className="msi">auto_awesome</span>
+      </button>
+    </div>
+  )
+}
+
+/* ── HOME VIEW ── */
+function HomeView({ onChip, onQuestion, inputValue, focused, onChange, onFocus, onBlur, onKey, onSend, inputRef }) {
+  const [selectedChip, setSelectedChip] = useState(0) // 0 = "News & Sentiment" selected by default
+  const carouselRef = useRef(null)
+
+  const handleChipClick = (idx) => {
+    setSelectedChip(idx)
+    onChip(CHIPS[idx])
+  }
+
+  const scrollCarousel = (dir) => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollBy({ left: dir * 176, behavior: 'smooth' })
+    }
+  }
+
   return (
     <div className="home-view">
       <div className="home-center">
+        {/* Title — Onest SemiBold 28px */}
         <p className="home-title">Which part of crypto should we dig into?</p>
+
+        {/* Chips — only selected has fill, rest outlined */}
         <div className="home-chips">
-          {CHIPS.map(c => (
-            <button key={c} className="chip-btn" onClick={() => onChip(c)}>{c}</button>
+          {CHIPS.map((c, i) => (
+            <button
+              key={c}
+              className={`chip-btn ${selectedChip === i ? 'selected' : ''}`}
+              onClick={() => handleChipClick(i)}
+            >
+              {c}
+            </button>
           ))}
         </div>
-        <div className="home-carousel">
-          {QUESTIONS.map((q, i) => (
-            <button key={i} className="q-card" onClick={() => onQuestion(q)}>{q}</button>
-          ))}
+
+        {/* Carousel with arrows */}
+        <div className="home-carousel-wrap">
+          <button className="carousel-arrow left" onClick={() => scrollCarousel(-1)}>
+            <span className="msi">keyboard_arrow_left</span>
+          </button>
+          <div className="home-carousel" ref={carouselRef}>
+            {QUESTIONS.map((q, i) => (
+              <button key={i} className="q-card" onClick={() => onQuestion(q)}>{q}</button>
+            ))}
+          </div>
+          <button className="carousel-arrow right" onClick={() => scrollCarousel(1)}>
+            <span className="msi">keyboard_arrow_right</span>
+          </button>
+        </div>
+
+        {/* Input centered with the content */}
+        <div className="home-input-wrap">
+          <PromptInput
+            value={inputValue}
+            focused={focused}
+            onChange={onChange}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            onKey={onKey}
+            onSend={onSend}
+            inputRef={inputRef}
+          />
         </div>
       </div>
     </div>
   )
 }
 
-/* ── SEARCH ── */
+/* ── SEARCH VIEW ── */
 function SearchView({ query, onCoin, onPerson, onList }) {
-  const coins = filterCoins(query)
+  const coins  = filterCoins(query)
   const people = filterPeople(query)
 
   return (
@@ -245,18 +338,18 @@ function SearchView({ query, onCoin, onPerson, onList }) {
   )
 }
 
-/* ── RESPONSE ── */
+/* ── RESPONSE VIEW ── */
 const CHART_Y = [80, 72, 76, 62, 66, 46, 56, 42, 52, 36, 38, 26, 22, 18]
 
 function SparkLine() {
   const w = 280, h = 100
-  const pts = CHART_Y.map((y, i) => `${(i / (CHART_Y.length - 1)) * w},${y}`).join(' ')
+  const pts  = CHART_Y.map((y, i) => `${(i / (CHART_Y.length - 1)) * w},${y}`).join(' ')
   const area = `0,${h} ${pts} ${w},${h}`
   return (
     <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="rv-chart">
       <defs>
         <linearGradient id="sg" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="#006347" stopOpacity="0.25" />
+          <stop offset="0%"   stopColor="#006347" stopOpacity="0.25" />
           <stop offset="100%" stopColor="#006347" stopOpacity="0" />
         </linearGradient>
       </defs>
@@ -270,8 +363,8 @@ function ResponseView({ query, onBack }) {
   const [activeTab, setActiveTab] = useState('overview')
   const isBNB = /bnb|binance/i.test(query)
   const coin = isBNB
-    ? { name: 'BNB', symbol: 'BNB', price: '$615.40', change: '+8.7%', pos: true, cap: '$88.4B', vol: '$2.1B', supply: '145.9M BNB', rank: '#4', img: bnbImg }
-    : { name: 'Bitcoin', symbol: 'BTC', price: '$67,240', change: '+2.3%', pos: true, cap: '$1.32T', vol: '$32.4B', supply: '19.7M BTC', rank: '#1', img: btcImg }
+    ? { name: 'BNB', symbol: 'BNB', price: '$615.40', change: '+8.7%', pos: true,  cap: '$88.4B', vol: '$2.1B',  supply: '145.9M BNB', rank: '#4', img: bnbImg }
+    : { name: 'Bitcoin', symbol: 'BTC', price: '$67,240', change: '+2.3%', pos: true, cap: '$1.32T', vol: '$32.4B', supply: '19.7M BTC',  rank: '#1', img: btcImg }
 
   return (
     <div className="rv-shell">
@@ -283,7 +376,9 @@ function ResponseView({ query, onBack }) {
       <div className="rv-header">
         <div className="rv-header-left">
           <div className="rv-coin-img-wrap">
-            {coin.img ? <img src={coin.img} alt={coin.symbol} className="rv-coin-img" /> : <span className="rv-coin-fallback">{coin.symbol[0]}</span>}
+            {coin.img
+              ? <img src={coin.img} alt={coin.symbol} className="rv-coin-img" />
+              : <span className="rv-coin-fallback">{coin.symbol[0]}</span>}
           </div>
           <div>
             <div className="rv-coin-name">
@@ -331,9 +426,9 @@ function ResponseView({ query, onBack }) {
             <div className="rv-market-title">Market Data</div>
             {[
               ['All-Time High', isBNB ? '$686.31' : '$73,835', null],
-              ['All-Time Low', isBNB ? '$0.097' : '$67.81', null],
-              ['7d Change', isBNB ? '+12.4%' : '+5.8%', true],
-              ['30d Change', isBNB ? '+28.1%' : '-3.2%', isBNB],
+              ['All-Time Low',  isBNB ? '$0.097'  : '$67.81',  null],
+              ['7d Change',     isBNB ? '+12.4%'  : '+5.8%',   true],
+              ['30d Change',    isBNB ? '+28.1%'  : '-3.2%',   isBNB],
             ].map(([label, val, pos]) => (
               <div key={label} className="rv-market-row">
                 <span className="rv-market-label">{label}</span>
@@ -347,14 +442,7 @@ function ResponseView({ query, onBack }) {
       {activeTab === 'community' && (
         <div className="rv-content">
           <div className="rv-community-grid">
-            {[
-              ['Twitter / X', 'alternate_email'],
-              ['Reddit', 'forum'],
-              ['Telegram', 'send'],
-              ['Discord', 'chat_bubble'],
-              ['GitHub', 'code'],
-              ['Website', 'language'],
-            ].map(([label, icon]) => (
+            {[['Twitter / X','alternate_email'],['Reddit','forum'],['Telegram','send'],['Discord','chat_bubble'],['GitHub','code'],['Website','language']].map(([label, icon]) => (
               <button key={label} className="rv-comm-btn">
                 <span className="msi rv-comm-icon">{icon}</span>
                 <span>{label}</span>
@@ -368,9 +456,9 @@ function ResponseView({ query, onBack }) {
         <div className="rv-content">
           <div className="rv-news-list">
             {[
-              { title: `${coin.symbol} surges ${coin.change} as institutional demand rises`, source: 'CoinDesk', time: '2h ago' },
-              { title: `${coin.name} ecosystem grows with new DeFi protocol launch`, source: 'CryptoSlate', time: '5h ago' },
-              { title: `Analysts predict ${coin.symbol} could reach new ATH by Q4 2025`, source: 'Decrypt', time: '8h ago' },
+              { title: `${coin.symbol} surges ${coin.change} as institutional demand rises`, source: 'CoinDesk',    time: '2h ago' },
+              { title: `${coin.name} ecosystem grows with new DeFi protocol launch`,         source: 'CryptoSlate', time: '5h ago' },
+              { title: `Analysts predict ${coin.symbol} could reach new ATH by Q4 2025`,    source: 'Decrypt',     time: '8h ago' },
             ].map(n => (
               <button key={n.title} className="rv-news-item">
                 <div className="rv-news-body">

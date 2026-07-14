@@ -43,7 +43,7 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate }) {
 
       {/* Nav menu items */}
       <nav className="nb-menu">
-        <button className={`nb-item ${activePage === 'chat' ? 'active' : ''}`} onClick={() => onNavigate('chat')} title="New Chat">
+        <button className="nb-item" onClick={() => onNavigate('chat')} title="New Chat">
           <span className="nb-icon-bg"><span className="msi">edit_square</span></span>
           {expanded && <span className="nb-label">New Chat</span>}
         </button>
@@ -90,9 +90,12 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate }) {
         </div>
       ) : (
         /* History icon — collapsed */
-        <button className="nb-item" title="History" onClick={() => onNavigate('chat')}>
-          <span className="nb-icon-bg"><span className="msi">history</span></span>
-        </button>
+        <>
+          <button className="nb-item" title="History" onClick={() => onNavigate('chat')}>
+            <span className="nb-icon-bg"><span className="msi">history</span></span>
+          </button>
+          <div className="nb-history-collapsed-spacer" />
+        </>
       )}
 
       {/* Footer */}
