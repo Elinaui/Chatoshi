@@ -1,4 +1,6 @@
 import logoImg from '../assets/logo.png'
+import iconAlpha from '../assets/icon-alpha.svg'
+import iconStarAlt from '../assets/icon-star-alt.svg'
 import './NavBar.css'
 
 const historyGroups = [
@@ -52,7 +54,7 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate }) {
           {expanded && <span className="nb-label">Alerts</span>}
         </button>
         <button className={`nb-item ${activePage === 'alpha' ? 'active' : ''}`} onClick={() => onNavigate('alpha')} title="Alpha">
-          <span className="nb-icon-bg nb-alpha-bg"><span className="nb-alpha-glyph">α</span></span>
+          <span className="nb-icon-bg"><img src={iconAlpha} alt="" className="nb-svg-icon" /></span>
           {expanded && <span className="nb-label">Alpha</span>}
         </button>
         <button className={`nb-item ${activePage === 'learn' ? 'active' : ''}`} onClick={() => onNavigate('learn')} title="Learn">
@@ -108,7 +110,7 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate }) {
               <div className="nb-user-row">
                 <span className="nb-user-name">Aaron Armstrong</span>
                 <span className="nb-pro-badge">
-                  <span className="msi nb-star-icon">star</span>
+                  <img src={iconStarAlt} alt="" className="nb-star-icon" />
                   Pro
                 </span>
               </div>
@@ -119,7 +121,7 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate }) {
           <div className="nb-avatar-collapsed">
             <div className="nb-avatar">AA</div>
             <span className="nb-pro-dot">
-              <span className="msi nb-star-sm">star</span>
+              <img src={iconStarAlt} alt="" className="nb-star-sm" />
             </span>
           </div>
         )}

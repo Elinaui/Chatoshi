@@ -3,6 +3,8 @@ import btcImg from '../assets/coins/btc.png'
 import bnbImg from '../assets/coins/bnb.png'
 import bonkImg from '../assets/coins/bonk.png'
 import chatoshiIcon from '../assets/chatoshi-icon.png'
+import iconAI from '../assets/icon-ai.svg'
+import iconTempChat from '../assets/icon-temp-chat-off.svg'
 import './ChatView.css'
 
 // Chip labels exactly from Figma
@@ -103,10 +105,9 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
           <span className="msi cv-mode-chevron">keyboard_arrow_down</span>
         </button>
 
-        {/* Temporary chat button — placeholder icon until SVG provided */}
         <div className="cv-topbar-right">
           <button className="cv-temp-btn" title="Temporary chat">
-            <span className="msi">chat_bubble_outline</span>
+            <img src={iconTempChat} alt="" className="cv-icon-24" />
           </button>
         </div>
       </div>
@@ -177,7 +178,7 @@ function PromptInput({ value, focused, onChange, onFocus, onBlur, onKey, onSend,
         <span className="msi">mic</span>
       </button>
       <button className={`cv-send-btn ${value ? 'active' : ''}`} onClick={onSend}>
-        <span className="msi">auto_awesome</span>
+        <img src={iconAI} alt="" className="cv-icon-24" />
       </button>
     </div>
   )

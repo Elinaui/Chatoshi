@@ -94,15 +94,11 @@
   white-space: nowrap;
 }
 
-.nb-alpha-bg { font-family: serif; }
-.nb-alpha-glyph {
-  font-family: 'Times New Roman', serif;
-  font-size: 22px;
-  font-weight: 500;
-  color: var(--text-primary);
-  line-height: 1;
+.nb-svg-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
-.nb-item.active .nb-alpha-glyph { color: var(--accent); }
 
 /* ── DIVIDER ── */
 .nb-divider {
@@ -280,7 +276,7 @@
   border-radius: var(--r8);
   white-space: nowrap;
 }
-.nb-star-icon { font-size: 14px !important; color: var(--tag-on-primary); }
+.nb-star-icon { width: 14px; height: 14px; object-fit: contain; filter: brightness(0) invert(1); }
 
 .nb-user-email {
   font-size: var(--fs-sub);
@@ -307,7 +303,7 @@
   display: flex;
   align-items: center;
 }
-.nb-star-sm { font-size: 12px !important; color: var(--tag-on-primary); }
+.nb-star-sm { width: 12px; height: 12px; object-fit: contain; filter: brightness(0) invert(1); }
 
 /* ── MOBILE ── */
 @media (max-width: 768px) {

@@ -127,14 +127,15 @@
 .home-carousel-wrap {
   position: relative;
   width: 100%;
-  padding: 0 24px;
+  padding: 0 32px; /* space for the 40px arrows sitting -8px outside */
 }
 
 .home-carousel {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 0 8px;
+  /* 8px padding so first/last card don't slide under arrows */
+  padding: 2px 8px 8px;
   width: 100%;
   scrollbar-width: none;
 }
@@ -508,6 +509,9 @@
 .rv-news-title { font-size: var(--fs-sub); font-weight: 500; color: var(--text-primary); line-height: var(--lh-sub); }
 .rv-news-meta { font-size: var(--fs-caption); color: var(--text-tertiary); }
 .rv-news-arr { color: var(--text-secondary); flex-shrink: 0; }
+
+/* SVG icon helper */
+.cv-icon-24 { width: 24px; height: 24px; object-fit: contain; display: block; }
 
 /* ─── RESPONSIVE ─── */
 @media (max-width: 768px) {
