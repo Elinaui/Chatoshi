@@ -141,6 +141,13 @@
   scrollbar-width: none;
 }
 .home-carousel::-webkit-scrollbar { display: none; }
+/* Browsers collapse padding-right in overflow-x scroll containers.
+   A flex pseudo-element is the only reliable trailing spacer. */
+.home-carousel::after {
+  content: '';
+  flex-shrink: 0;
+  width: 8px;
+}
 
 /* Q-card: min 160×104, grows to fit content, bottom-right corner square per Figma */
 .q-card {
