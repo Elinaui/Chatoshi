@@ -132,6 +132,7 @@
 
 .home-carousel {
   display: flex;
+  align-items: flex-start; /* cards grow to their own height, not each other's */
   gap: 8px;
   overflow-x: auto;
   /* 8px padding so first/last card don't slide under arrows */
@@ -141,11 +142,13 @@
 }
 .home-carousel::-webkit-scrollbar { display: none; }
 
-/* Q-card: 160×104, bottom-right corner square per Figma */
+/* Q-card: min 160×104, grows to fit content, bottom-right corner square per Figma */
 .q-card {
   flex-shrink: 0;
   width: 160px;
-  height: 104px;
+  min-width: 160px;
+  min-height: 104px;
+  height: auto;
   padding: 12px;
   border-radius: var(--r8) var(--r8) 0 var(--r8);
   background: var(--surface-secondary);
