@@ -1,4 +1,4 @@
-import logoImg from '../assets/logo.png'
+import logoImg from '../assets/chatoshi-light.svg'
 import iconAlpha from '../assets/icon-alpha.svg'
 import iconStarAlt from '../assets/icon-star-alt.svg'
 import './NavBar.css'
