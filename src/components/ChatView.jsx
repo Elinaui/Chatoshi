@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react'
 import btcImg from '../assets/coins/btc.png'
 import bnbImg from '../assets/coins/bnb.png'
 import bonkImg from '../assets/coins/bonk.png'
-import chatoshiIcon from '../assets/chatoshi-icon.png'
+import chatoshiLogo from '../assets/chatoshi-logo.svg'
 import iconAI from '../assets/icon-ai.svg'
 import iconTempChat from '../assets/icon-temp-chat-off.svg'
 import './ChatView.css'
@@ -18,16 +18,79 @@ const CHIPS = [
   'Analytics & Insights',
 ]
 
-const QUESTIONS = [
-  'What is the latest crypto news?',
-  'Explain the double-spending problem and its solution in cryptocurrency.',
-  'What are the social links for XRP?',
-  'What is Pepe?',
-  'What is the latest crypto news?',
-  'Explain the double-spending problem and its solution in cryptocurrency.',
-  'What are the social links for XRP?',
-  'What is Pepe?',
-]
+// Questions per chip category
+const CHIP_QUESTIONS = {
+  0: [ // News & Sentiment
+    'What is the latest crypto news today?',
+    'What\'s the current market sentiment for Bitcoin?',
+    'Which coins are trending right now?',
+    'What\'s driving the current crypto market movement?',
+    'Are there any major protocol upgrades coming?',
+    'What\'s the latest regulatory news in crypto?',
+    'Which altcoins are getting the most buzz this week?',
+    'What are the top DeFi stories right now?',
+  ],
+  1: [ // Crypto Fundamentals
+    'Explain the double-spending problem and its solution.',
+    'What is proof of work vs proof of stake?',
+    'How does a blockchain consensus mechanism work?',
+    'What is a smart contract and how does it work?',
+    'What is the difference between Layer 1 and Layer 2?',
+    'How does DeFi differ from traditional finance?',
+    'What is tokenomics and why does it matter?',
+    'Explain liquidity pools and impermanent loss.',
+  ],
+  2: [ // X & Socials
+    'Who are the most influential crypto voices on X?',
+    'What is the X community saying about Ethereum?',
+    'What are the social links for Bitcoin?',
+    'What are the social links for XRP?',
+    'Which crypto projects have the most active communities?',
+    'Which influencers are bullish on altcoins right now?',
+    'What is the Reddit community saying about Solana?',
+    'What is the Discord for the top NFT projects?',
+  ],
+  3: [ // Token Information
+    'What is Pepe and what is its use case?',
+    'What is the total supply of Bitcoin?',
+    'What is the market cap of Ethereum?',
+    'Who are the founders of Solana?',
+    'What is the utility of the BNB token?',
+    'What are the tokenomics of Cardano?',
+    'What is the circulating supply of XRP?',
+    'What is the vesting schedule for Sui tokens?',
+  ],
+  4: [ // Blockchain Explorer
+    'What are the largest Bitcoin transactions today?',
+    'How many active wallets does Ethereum have?',
+    'What is the current gas price on Ethereum?',
+    'Show me the top whale movements for BTC.',
+    'What is the total value locked in DeFi?',
+    'How many transactions per second does Solana process?',
+    'What is the hash rate of Bitcoin right now?',
+    'What are the latest blocks on the Bitcoin chain?',
+  ],
+  5: [ // Quant & Alpha
+    'What is the RSI for Bitcoin right now?',
+    'Which coins are showing bullish divergence?',
+    'What are the top volume movers in the last 24h?',
+    'Which DeFi protocols have the highest APY?',
+    'What are the on-chain signals for a BTC rally?',
+    'Which altcoins have the best risk/reward ratio?',
+    'What is the funding rate for BTC perpetuals?',
+    'What is the Sharpe ratio of ETH vs BTC?',
+  ],
+  6: [ // Analytics & Insights
+    'What is the Bitcoin dominance right now?',
+    'How has ETH performed vs BTC this quarter?',
+    'What is the fear and greed index today?',
+    'Which sector of crypto is outperforming?',
+    'What are the most correlated assets to Bitcoin?',
+    'How does the current cycle compare to 2021?',
+    'Which chain has the most developer activity?',
+    'What are the key metrics for evaluating a DeFi protocol?',
+  ],
+}
 
 const ALL_COINS = [
   { symbol: 'BTC', name: 'Bitcoin',   price: '$67,240',    change: '+2.3', pos: true,  img: btcImg  },
@@ -100,7 +163,7 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
         <div className="cv-topbar-left" />
 
         <button className="cv-mode-btn">
-          <img src={chatoshiIcon} alt="" className="cv-mode-logo" />
+          <img src={chatoshiLogo} alt="" className="cv-mode-logo" />
           <span className="cv-mode-label">Serious</span>
           <span className="msi cv-mode-chevron">keyboard_arrow_down</span>
         </button>
@@ -116,7 +179,6 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
       <div className="cv-body">
         {state === 'home' && (
           <HomeView
-            onChip={(c) => { setInput(c); onSend(c) }}
             onQuestion={(q) => { setInput(q); onSend(q) }}
             inputValue={input}
             focused={focused}
@@ -185,13 +247,16 @@ function PromptInput({ value, focused, onChange, onFocus, onBlur, onKey, onSend,
 }
 
 /* ── HOME VIEW ── */
-function HomeView({ onChip, onQuestion, inputValue, focused, onChange, onFocus, onBlur, onKey, onSend, inputRef }) {
-  const [selectedChip, setSelectedChip] = useState(0) // 0 = "News & Sentiment" selected by default
+function HomeView({ onQuestion, inputValue, focused, onChange, onFocus, onBlur, onKey, onSend, inputRef }) {
+  const [selectedChip, setSelectedChip] = useState(0)
   const carouselRef = useRef(null)
 
   const handleChipClick = (idx) => {
     setSelectedChip(idx)
-    onChip(CHIPS[idx])
+    // Scroll carousel back to start when category changes
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' })
+    }
   }
 
   const scrollCarousel = (dir) => {
@@ -199,6 +264,8 @@ function HomeView({ onChip, onQuestion, inputValue, focused, onChange, onFocus, 
       carouselRef.current.scrollBy({ left: dir * 176, behavior: 'smooth' })
     }
   }
+
+  const questions = CHIP_QUESTIONS[selectedChip] || []
 
   return (
     <div className="home-view">
@@ -225,7 +292,7 @@ function HomeView({ onChip, onQuestion, inputValue, focused, onChange, onFocus, 
             <span className="msi">keyboard_arrow_left</span>
           </button>
           <div className="home-carousel" ref={carouselRef}>
-            {QUESTIONS.map((q, i) => (
+            {questions.map((q, i) => (
               <button key={i} className="q-card" onClick={() => onQuestion(q)}>{q}</button>
             ))}
           </div>
