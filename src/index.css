@@ -14,6 +14,11 @@
   --border-primary: #dadfe3;
   --border-neutral: #dddcde;
   --border-secondary: #ebeef0;
+  --border-tertiary: #f4f5f7;
+
+  --surface-neutral: #eeeeee;
+  --surface-tertiary: #f2f5fd;
+  --accent-secondary: #1d4ed8;
 
   --text-primary: #252d32;
   --text-secondary: #3b474f;
@@ -26,9 +31,16 @@
 
   --tag-primary: #446ee6;
   --tag-on-primary: #f2f5fd;
+  --tag-secondary: #dce4fa;
+
+  --text-primary-inverse: #fefefe;
+  --text-tertiary-inverse: #ebeef0;
 
   --success: #006347;
   --error: #9d2a2f;
+  --error-secondary: #f3d6d8;
+  --on-error-secondary: #270a0c;
+  --error-strong: #c4343b;
 
   --elevation: rgba(31,37,41,0.08);
 
@@ -71,7 +83,7 @@ html, body, #root {
   width: 100%;
 }
 
-body { background: var(--surface-primary); }
+body { background: #fcfdfd; }
 
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; font-family: inherit; border: none; background: none; padding: 0; }

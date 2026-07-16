@@ -1,10 +1,28 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import btcImg from '../assets/coins/btc.png'
 import bnbImg from '../assets/coins/bnb.png'
+import bnbIconImg from '../assets/coins/bnb-icon.png'
 import bonkImg from '../assets/coins/bonk.png'
 import chatoshiLogo from '../assets/chatoshi-logo.svg'
 import iconAI from '../assets/icon-ai.svg'
 import iconTempChat from '../assets/icon-temp-chat-off.svg'
+// Exchange logos
+import tronLogo from '../assets/exchanges/tron.png'
+import tronscanLogo from '../assets/exchanges/tronscan.png'
+import curveLogo from '../assets/exchanges/curve.png'
+import binanceLogo from '../assets/exchanges/binance.png'
+// Wallet logos
+import metamaskLogo from '../assets/wallets/metamask.png'
+import ledgerLogo from '../assets/wallets/ledger.png'
+import trezorLogo from '../assets/wallets/trezor.png'
+// Social button SVGs
+import btnWebsite from '../assets/social/btn-website.svg'
+import btnTwitter from '../assets/social/btn-twitter.svg'
+import btnYoutube from '../assets/social/btn-youtube.svg'
+import btnPatreon from '../assets/social/btn-patreon.svg'
+// Thoughts icon
+import iconFlare from '../assets/icon-flare.svg'
 import './ChatView.css'
 
 // Chip labels exactly from Figma
@@ -130,6 +148,57 @@ function filterPeople(q) {
   return ALL_PEOPLE.filter(p => p.name.toLowerCase().startsWith(lq)).slice(0, 3)
 }
 
+function useClickOutside(ref, onClose) {
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose() }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [ref, onClose])
+}
+
+function TopbarMenu() {
+  const [open, setOpen] = useState(false)
+  const [pos, setPos] = useState({ top: 0, right: 0 })
+  const btnRef = useRef(null)
+  const menuRef = useRef(null)
+  useClickOutside(menuRef, () => setOpen(false))
+
+  const toggle = () => {
+    if (!open) {
+      const rect = btnRef.current.getBoundingClientRect()
+      setPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right })
+    }
+    setOpen(o => !o)
+  }
+
+  return (
+    <>
+      <button ref={btnRef} className="cv-dots-btn" title="More options" onClick={toggle}>
+        <span className="msi">more_horiz</span>
+      </button>
+      {open && createPortal(
+        <div ref={menuRef} className="cv-dots-menu" style={{ top: pos.top, right: pos.right }}>
+          <button className="cv-dots-item" onClick={() => setOpen(false)}>
+            <span className="msi cv-dots-icon">ios_share</span>
+            Share thread (read-only)
+          </button>
+          <div className="cv-dots-divider" />
+          <button className="cv-dots-item" onClick={() => setOpen(false)}>
+            <span className="msi cv-dots-icon">edit</span>
+            Rename chat
+          </button>
+          <div className="cv-dots-divider" />
+          <button className="cv-dots-item cv-dots-item--danger" onClick={() => setOpen(false)}>
+            <span className="msi cv-dots-icon">delete</span>
+            Delete chat
+          </button>
+        </div>,
+        document.body
+      )}
+    </>
+  )
+}
+
 export default function ChatView({ state, query, responseData, onSearch, onSend, onBack }) {
   const [input, setInput]   = useState('')
   const [focused, setFocused] = useState(false)
@@ -137,7 +206,7 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
 
   useEffect(() => { if (state === 'home') setInput('') }, [state])
 
-  const displayValue = state === 'search' ? query : input
+  const displayValue = state === 'search' ? query : state === 'response' ? '' : input
 
   const handleChange = (e) => {
     const val = e.target.value
@@ -169,9 +238,14 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
         </button>
 
         <div className="cv-topbar-right">
-          <button className="cv-temp-btn" title="Temporary chat">
-            <img src={iconTempChat} alt="" className="cv-icon-24" />
-          </button>
+          {state === 'response'
+            ? <TopbarMenu />
+            : (
+              <button className="cv-temp-btn" title="Temporary chat">
+                <img src={iconTempChat} alt="" className="cv-icon-24" />
+              </button>
+            )
+          }
         </div>
       </div>
 
@@ -199,7 +273,7 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
           />
         )}
         {state === 'response' && (
-          <ResponseView query={responseData?.query || query} onBack={onBack} />
+          <ResponseView onBack={onBack} />
         )}
       </div>
 
@@ -236,36 +310,63 @@ function PromptInput({ value, focused, onChange, onFocus, onBlur, onKey, onSend,
         onKeyDown={onKey}
         placeholder="Ask anything about crypto"
       />
-      <button className="cv-mic-btn">
-        <span className="msi">mic</span>
-      </button>
+      {!value && (
+        <button className="cv-mic-btn">
+          <span className="msi">mic</span>
+        </button>
+      )}
       <button className={`cv-send-btn ${value ? 'active' : ''}`} onClick={onSend}>
-        <img src={iconAI} alt="" className="cv-icon-24" />
+        {value
+          ? <span className="msi cv-send-icon">send</span>
+          : <img src={iconAI} alt="" className="cv-icon-24" />}
       </button>
     </div>
   )
 }
 
+const CAROUSEL_GAP = 8
+const CAROUSEL_ARROW_SPACE = 48  // 40px button + 8px gap each side
+const CARD_MIN_W = 160
+const CARD_MAX_COUNT = 4
+
+function useCarouselLayout(trackOuterRef) {
+  const [layout, setLayout] = useState({ count: 4, cardWidth: CARD_MIN_W })
+
+  const recalc = useCallback(() => {
+    const el = trackOuterRef.current
+    if (!el || el.clientWidth === 0) return
+    const w = el.clientWidth
+    const fit = Math.floor((w + CAROUSEL_GAP) / (CARD_MIN_W + CAROUSEL_GAP))
+    const count = Math.max(1, Math.min(CARD_MAX_COUNT, fit))
+    const cardWidth = Math.floor((w - CAROUSEL_GAP * (count - 1)) / count)
+    setLayout({ count, cardWidth })
+  }, [trackOuterRef])
+
+  useEffect(() => {
+    recalc()
+    const ro = new ResizeObserver(recalc)
+    if (trackOuterRef.current) ro.observe(trackOuterRef.current)
+    return () => ro.disconnect()
+  }, [recalc, trackOuterRef])
+
+  return layout
+}
+
 /* ── HOME VIEW ── */
 function HomeView({ onQuestion, inputValue, focused, onChange, onFocus, onBlur, onKey, onSend, inputRef }) {
   const [selectedChip, setSelectedChip] = useState(0)
-  const carouselRef = useRef(null)
-
-  const handleChipClick = (idx) => {
-    setSelectedChip(idx)
-    // Scroll carousel back to start when category changes
-    if (carouselRef.current) {
-      carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' })
-    }
-  }
-
-  const scrollCarousel = (dir) => {
-    if (carouselRef.current) {
-      carouselRef.current.scrollBy({ left: dir * 176, behavior: 'smooth' })
-    }
-  }
+  const [page, setPage] = useState(0)
+  const trackOuterRef = useRef(null)
+  const layout = useCarouselLayout(trackOuterRef)
 
   const questions = CHIP_QUESTIONS[selectedChip] || []
+  const totalPages = layout.count > 0 ? Math.ceil(questions.length / layout.count) : 1
+  const safePage = Math.min(page, Math.max(0, totalPages - 1))
+
+  // Reset to first page on chip or layout count change
+  useEffect(() => { setPage(0) }, [selectedChip, layout.count])
+
+  const offset = safePage * layout.count * (layout.cardWidth + CAROUSEL_GAP)
 
   return (
     <div className="home-view">
@@ -279,7 +380,7 @@ function HomeView({ onQuestion, inputValue, focused, onChange, onFocus, onBlur, 
             <button
               key={c}
               className={`chip-btn ${selectedChip === i ? 'selected' : ''}`}
-              onClick={() => handleChipClick(i)}
+              onClick={() => setSelectedChip(i)}
             >
               {c}
             </button>
@@ -288,15 +389,35 @@ function HomeView({ onQuestion, inputValue, focused, onChange, onFocus, onBlur, 
 
         {/* Carousel with arrows */}
         <div className="home-carousel-wrap">
-          <button className="carousel-arrow left" onClick={() => scrollCarousel(-1)}>
+          <button
+            className="carousel-arrow left"
+            onClick={() => setPage(p => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+          >
             <span className="msi">keyboard_arrow_left</span>
           </button>
-          <div className="home-carousel" ref={carouselRef}>
-            {questions.map((q, i) => (
-              <button key={i} className="q-card" onClick={() => onQuestion(q)}>{q}</button>
-            ))}
+          <div className="home-carousel-track-outer" ref={trackOuterRef}>
+            <div
+              className="home-carousel-track"
+              style={{ transform: `translateX(-${offset}px)` }}
+            >
+              {questions.map((q, i) => (
+                <button
+                  key={i}
+                  className="q-card"
+                  style={{ width: layout.cardWidth }}
+                  onClick={() => onQuestion(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
-          <button className="carousel-arrow right" onClick={() => scrollCarousel(1)}>
+          <button
+            className="carousel-arrow right"
+            onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage >= totalPages - 1}
+          >
             <span className="msi">keyboard_arrow_right</span>
           </button>
         </div>
@@ -406,139 +527,360 @@ function SearchView({ query, onCoin, onPerson, onList }) {
   )
 }
 
-/* ── RESPONSE VIEW ── */
-const CHART_Y = [80, 72, 76, 62, 66, 46, 56, 42, 52, 36, 38, 26, 22, 18]
+/* ── COMMUNITY TAB ── */
+const COMM_FILTERS = ['Newest videos', 'Most popular', 'Most viewed', 'Chip']
 
-function SparkLine() {
-  const w = 280, h = 100
-  const pts  = CHART_Y.map((y, i) => `${(i / (CHART_Y.length - 1)) * w},${y}`).join(' ')
+const COMMUNITY_VIDEOS = [
+  { title: "Here's your Cue to subscribe your BNB in Binance.", creator: 'Emmanuel Obuobi Fianko', tags: ['00:30 BNB','03:55 Bitcoin','12:45 Solana','22:45 BNB'], platform: 'Instagram', time: '6 hours ago',   bg: '#18181b' },
+  { title: 'Will the Binance Smart Chain crash now? BNB Crypto token analysis', creator: 'Gerhard - Bitcoin Strategy', tags: ['00:30 BNB','03:55 Bitcoin','12:45 Solana','22:45 BNB'], platform: 'Youtube', time: '2 days ago',    bg: '#2d1b69' },
+  { title: 'Stake BNB Now: Earn GUNZ Early Before the March 31 Binance Listing!', creator: 'Mumo', tags: ['00:30 BNB','03:55 Bitcoin','12:45 Solana','22:45 BNB'], platform: 'Youtube',    time: 'Jan 2, 2025',  bg: '#18181b' },
+  { title: "Here's your Cue to subscribe your BNB in Binance.", creator: 'Emmanuel Obuobi Fianko', tags: ['00:30 BNB','03:55 Bitcoin','12:45 Solana','22:45 BNB'], platform: 'Instagram', time: '6 hours ago',   bg: '#1c1c3a' },
+  { title: 'Will the Binance Smart Chain crash now? BNB Crypto token analysis', creator: 'Gerhard - Bitcoin Strategy', tags: ['00:30 BNB','03:55 Bitcoin','12:45 Solana','22:45 BNB'], platform: 'Youtube', time: '2 days ago',    bg: '#2d1b69' },
+  { title: 'Stake BNB Now: Earn GUNZ Early Before the March 31 Binance Listing!', creator: 'Mumo', tags: ['00:30 BNB','03:55 Bitcoin','12:45 Solana','22:45 BNB'], platform: 'Youtube',    time: 'Jan 2, 2025',  bg: '#18181b' },
+]
+
+function CommunityContent() {
+  const [activeFilter, setActiveFilter] = useState(0)
+  return (
+    <div className="rv-community">
+      <div className="comm-filter-row">
+        {COMM_FILTERS.map((f, i) => (
+          <button key={f} className={`comm-chip${activeFilter === i ? ' active' : ''}`} onClick={() => setActiveFilter(i)}>
+            {f}
+          </button>
+        ))}
+      </div>
+      <div className="comm-grid">
+        {COMMUNITY_VIDEOS.map((v, i) => (
+          <div key={i} className="comm-card">
+            <div className="comm-thumb" style={{ background: v.bg }}>
+              <div className="comm-play-btn">
+                <span className="msi" style={{ fontSize: 24, color: '#fff' }}>play_arrow</span>
+              </div>
+            </div>
+            <div className="comm-body">
+              <p className="comm-title">{v.title}</p>
+              <button className="comm-creator">
+                {v.creator}
+                <span className="msi" style={{ fontSize: 14 }}>chevron_right</span>
+              </button>
+              <div className="comm-tags">
+                {v.tags.map((t, j) => (
+                  <span key={j} className="comm-tag-item">
+                    {j > 0 && <span className="comm-dot">•</span>}
+                    {t}
+                  </span>
+                ))}
+                <span className="comm-dot">•</span>
+                <button className="comm-view-more">
+                  View More <span className="msi" style={{ fontSize: 13, verticalAlign: 'middle' }}>expand_more</span>
+                </button>
+              </div>
+              <p className="comm-footer">{v.platform} • {v.time}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+      <button className="rv-load-more">Load more</button>
+    </div>
+  )
+}
+
+/* ── NEWS TAB ── */
+function NewsContent() {
+  return (
+    <div className="rv-news">
+      <div className="news-empty">
+        <span className="msi news-empty-icon">search</span>
+        <p className="news-empty-title">No news available</p>
+        <p className="news-empty-sub">We couldn't find any recent articles or updates for this coin.</p>
+      </div>
+    </div>
+  )
+}
+
+/* ── RESPONSE VIEW ── */
+const BNB_Y = [80, 125, 168, 205, 178, 188, 152, 162, 92, 40, 108, 132, 162, 142, 172, 148, 158, 142, 132]
+
+function BNBChart() {
+  const w = 734, h = 254
+  const pts = BNB_Y.map((y, i) => `${(i / (BNB_Y.length - 1)) * w},${y}`).join(' ')
   const area = `0,${h} ${pts} ${w},${h}`
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="rv-chart">
+    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="bnb-chart-svg">
       <defs>
-        <linearGradient id="sg" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%"   stopColor="#006347" stopOpacity="0.25" />
-          <stop offset="100%" stopColor="#006347" stopOpacity="0" />
+        <linearGradient id="bnbGrad" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#22C55E" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#22C55E" stopOpacity="0.02" />
         </linearGradient>
       </defs>
-      <polygon points={area} fill="url(#sg)" />
-      <polyline points={pts} fill="none" stroke="#006347" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <polygon points={area} fill="url(#bnbGrad)" />
+      <polyline points={pts} fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }
 
-function ResponseView({ query, onBack }) {
-  const [activeTab, setActiveTab] = useState('overview')
-  const isBNB = /bnb|binance/i.test(query)
-  const coin = isBNB
-    ? { name: 'BNB', symbol: 'BNB', price: '$615.40', change: '+8.7%', pos: true,  cap: '$88.4B', vol: '$2.1B',  supply: '145.9M BNB', rank: '#4', img: bnbImg }
-    : { name: 'Bitcoin', symbol: 'BTC', price: '$67,240', change: '+2.3%', pos: true, cap: '$1.32T', vol: '$32.4B', supply: '19.7M BTC',  rank: '#1', img: btcImg }
+function ResponseView({ onBack }) {
+  const [activeTab, setActiveTab] = useState('summary')
 
   return (
     <div className="rv-shell">
-      <button className="rv-back" onClick={onBack}>
-        <span className="msi rv-back-icon">arrow_back</span>
-        Back
-      </button>
 
-      <div className="rv-header">
-        <div className="rv-header-left">
-          <div className="rv-coin-img-wrap">
-            {coin.img
-              ? <img src={coin.img} alt={coin.symbol} className="rv-coin-img" />
-              : <span className="rv-coin-fallback">{coin.symbol[0]}</span>}
-          </div>
-          <div>
-            <div className="rv-coin-name">
-              {coin.name}
-              <span className="rv-sym">{coin.symbol}</span>
+      {/* User bubble */}
+      <div className="rv-msg-row">
+        <span className="rv-user-bubble">BNB</span>
+      </div>
+
+      {/* Thoughts pill */}
+      <div className="rv-thoughts">
+        <img src={iconFlare} alt="" className="rv-thoughts-icon" />
+        Thought for 9s
+        <span className="msi rv-thoughts-arrow">chevron_right</span>
+      </div>
+
+      {/* Graph card */}
+      <div className="rv-graph-card">
+        <div className="rv-coin-header">
+          <div className="rv-coin-left">
+            <div className="rv-coin-logo-wrap">
+              <img src={bnbIconImg} alt="BNB" className="rv-coin-logo-img" />
             </div>
-            <div className="rv-price-row">
-              <span className="rv-price">{coin.price}</span>
-              <span className={`rv-change ${coin.pos ? 'pos' : 'neg'}`}>
-                <span className="msi rv-chg-arrow">{coin.pos ? 'arrow_upward_alt' : 'arrow_downward_alt'}</span>
-                {coin.change}
-              </span>
+            <div>
+              <div className="rv-coin-name-row">
+                <span className="rv-coin-name">BNB</span>
+                <span className="rv-coin-rank">#5</span>
+              </div>
+              <div className="rv-coin-subname">Binance Coin</div>
+            </div>
+          </div>
+          <div className="rv-coin-right">
+            <div className="rv-coin-price">$639,83</div>
+            <div className="rv-coin-pct pos">
+              <span className="msi" style={{fontSize:16}}>arrow_upward_alt</span>8.95%
             </div>
           </div>
         </div>
-        <div className="rv-chart-wrap"><SparkLine /></div>
-      </div>
-
-      <div className="rv-stats">
-        {[['Market Cap', coin.cap], ['24h Volume', coin.vol], ['Circulating Supply', coin.supply], ['Rank', coin.rank]].map(([l, v]) => (
-          <div key={l} className="rv-stat">
-            <span className="rv-stat-label">{l}</span>
-            <span className="rv-stat-val">{v}</span>
+        <div className="rv-graph-actions">
+          <div className="rv-graph-actions-left">
+            <button className="rv-graph-btn"><span className="msi" style={{fontSize:18}}>bar_chart</span></button>
+            <button className="rv-graph-btn"><span className="msi" style={{fontSize:18}}>ios_share</span></button>
           </div>
-        ))}
-      </div>
-
-      <div className="rv-tabs">
-        {['overview', 'community', 'news'].map(tab => (
-          <button key={tab} className={`rv-tab ${activeTab === tab ? 'active' : ''}`} onClick={() => setActiveTab(tab)}>
-            {tab[0].toUpperCase() + tab.slice(1)}
-          </button>
-        ))}
-      </div>
-
-      {activeTab === 'overview' && (
-        <div className="rv-content">
-          <div className="rv-text-card">
-            <p>{isBNB
-              ? 'BNB (Binance Coin) is the native cryptocurrency of the Binance ecosystem. Originally launched as an ERC-20 token in 2017, BNB migrated to Binance Chain and now powers the BNB Smart Chain, enabling fast and low-cost transactions.'
-              : "Bitcoin (BTC) is the world's first and largest cryptocurrency by market capitalization, created in 2009 by the pseudonymous Satoshi Nakamoto. It introduced blockchain technology and decentralized peer-to-peer digital currency."
-            }</p>
+          <button className="rv-graph-btn"><span className="msi" style={{fontSize:18}}>fullscreen</span></button>
+        </div>
+        <div className="rv-chart-area">
+          <BNBChart />
+          <div className="rv-chart-dates">
+            <span>Mar 8</span><span>Mar 15</span><span>Mar 22</span><span>Apr 8</span><span>Apr 15</span>
           </div>
-          <div className="rv-market-card">
-            <div className="rv-market-title">Market Data</div>
+        </div>
+      </div>
+
+      {/* Smart Contracts */}
+      <div className="rv-section">
+        <div className="rv-section-title">Smart Contracts</div>
+        <div className="rv-contract-card">
+          <div className="rv-contract-row">
+            <div className="rv-contract-left">
+              <div className="rv-contract-logo">
+                <img src={tronLogo} alt="Tron" style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'inherit'}} />
+              </div>
+              <div className="rv-contract-info">
+                <span className="rv-contract-name">Tron</span>
+                <div className="rv-contract-addr">
+                  0xf57e7e7c....6e79ff
+                  <span className="msi" style={{fontSize:14,marginLeft:4,verticalAlign:'middle',color:'var(--text-tertiary)'}}>content_copy</span>
+                </div>
+                <div className="rv-contract-link">
+                  <img src={tronscanLogo} alt="" style={{width:16,height:16,objectFit:'contain'}} />
+                  <span className="rv-tronscan">Tronscan</span>
+                </div>
+              </div>
+            </div>
+            <span className="rv-contract-badge">Primary</span>
+          </div>
+          <div className="rv-contract-btns">
+            <button className="rv-contract-buy">Buy</button>
+            <button className="rv-contract-viewall">View all Smart Contracts</button>
+          </div>
+        </div>
+      </div>
+
+      {/* Segmented tabs */}
+      <div className="rv-seg-wrap">
+        <div className="rv-seg-control">
+          {['summary','community','news'].map(t => (
+            <button key={t} className={`rv-seg-tab${activeTab===t?' active':''}`} onClick={()=>setActiveTab(t)}>
+              {t[0].toUpperCase()+t.slice(1)}
+            </button>
+          ))}
+        </div>
+      </div>
+      <p className="rv-tab-sub">
+        {activeTab === 'summary'   && 'Get a quick overview of this coin and its metrics.'}
+        {activeTab === 'community' && 'See what people are saying and trending in the community.'}
+        {activeTab === 'news'      && "Track news that influences this coin's performance."}
+      </p>
+
+      {activeTab === 'summary' && (<>
+        {/* Description */}
+        <p className="rv-desc">BNB is the cryptocurrency of the Binance platform, a trading platform exclusively for cryptocurrencies. The name "Binance" is a combination of binary and finance, indicating that only cryptocurrencies can be traded against each other, not against fiat currencies. Binance Coin (BNB) is used to pay fees on Binance, including trading, transaction, and listing fees, with discounts offered for using BNB. Initially, 200 million BNBs were issued, with a portion sold during the ICO, allocated to the team, and to angel investors. Binance has a buyback plan to burn up to 100 million BNB to increase the value of the remaining coins. BNB is ranked 5th in terms of market cap, which is currently $91,897,545,708. It is traded on various exchanges, including Binance, DigiFinex, and LBank, among others.</p>
+
+        {/* Market Data */}
+        <div className="rv-section">
+          <div className="rv-section-title">Market Data</div>
+          <div className="rv-md-wrap">
+            <div className="rv-md-ath-row">
+              <div className="rv-md-cell">
+                <span className="rv-md-label">All Time High</span>
+                <span className="rv-md-tag">Nov 10, 2021</span>
+                <span className="rv-md-val">$4878.26</span>
+              </div>
+              <div className="rv-md-cell">
+                <span className="rv-md-label">All Time Low</span>
+                <span className="rv-md-tag">Nov 10, 2021</span>
+                <span className="rv-md-val">$0.43</span>
+              </div>
+            </div>
+            <div className="rv-md-grid4">
+              {[['Market Cap','$292,4B'],['Trading Vol. (24h)','$13,9B'],['Liquidity','$292,4B'],['Locked Liquidity','40%']].map(([l,v])=>(
+                <div key={l} className="rv-md-cell"><span className="rv-md-label">{l}</span><span className="rv-md-val">{v}</span></div>
+              ))}
+            </div>
+            <div className="rv-md-grid3">
+              {[['Holders','24,987'],['Total Supply','120,3M'],['Circulating Supply','120,379,988']].map(([l,v])=>(
+                <div key={l} className="rv-md-cell"><span className="rv-md-label">{l}</span><span className="rv-md-val">{v}</span></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Categories */}
+        <div className="rv-section">
+          <div className="rv-section-hdr">
+            <span className="rv-section-title">Categories</span>
+            <button className="rv-view-all">View all (+3)</button>
+          </div>
+          <div className="rv-tags">
+            {['Smart Contract Platform','Layer 1 (L1)','GMCI'].map(t=>(
+              <span key={t} className="rv-tag">{t}</span>
+            ))}
+          </div>
+        </div>
+
+        {/* Social */}
+        <div className="rv-section">
+          <div className="rv-section-title">Social</div>
+          <div className="rv-social-row">
+            {[btnWebsite, btnTwitter, btnYoutube, btnPatreon].map((src,i)=>(
+              <img key={i} src={src} alt="" className="rv-social-btn-svg" />
+            ))}
+          </div>
+        </div>
+
+        {/* Exchanges */}
+        <div className="rv-section">
+          <div className="rv-section-hdr">
+            <span className="rv-section-title">Exchanges to Buy Ethereum</span>
+            <button className="rv-view-all">View all</button>
+          </div>
+          <div className="rv-exchange-grid">
             {[
-              ['All-Time High', isBNB ? '$686.31' : '$73,835', null],
-              ['All-Time Low',  isBNB ? '$0.097'  : '$67.81',  null],
-              ['7d Change',     isBNB ? '+12.4%'  : '+5.8%',   true],
-              ['30d Change',    isBNB ? '+28.1%'  : '-3.2%',   isBNB],
-            ].map(([label, val, pos]) => (
-              <div key={label} className="rv-market-row">
-                <span className="rv-market-label">{label}</span>
-                <span className={`rv-market-val ${pos === true ? 'pos' : pos === false ? 'neg' : ''}`}>{val}</span>
+              {name:'CurveFinance',pairs:['ETH/USDT','BNB/ETH'], logo: curveLogo},
+              {name:'Binance',     pairs:['BNB/BTC','BNB/USDT'], logo: binanceLogo},
+              {name:'Binance',     pairs:['BNB/BTC','BNB/USDT'], logo: binanceLogo},
+            ].map((ex,i)=>(
+              <div key={i} className="rv-exchange-card">
+                <div className="rv-exchange-top">
+                  <div className="rv-exchange-logo"><img src={ex.logo} alt={ex.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'inherit'}} /></div>
+                  <span className="rv-exchange-name">{ex.name}</span>
+                </div>
+                <div className="rv-exchange-pairs">
+                  {ex.pairs.map(p=><span key={p} className="rv-exchange-pair">{p}</span>)}
+                </div>
               </div>
             ))}
           </div>
         </div>
-      )}
 
-      {activeTab === 'community' && (
-        <div className="rv-content">
-          <div className="rv-community-grid">
-            {[['Twitter / X','alternate_email'],['Reddit','forum'],['Telegram','send'],['Discord','chat_bubble'],['GitHub','code'],['Website','language']].map(([label, icon]) => (
-              <button key={label} className="rv-comm-btn">
-                <span className="msi rv-comm-icon">{icon}</span>
-                <span>{label}</span>
-              </button>
-            ))}
+        {/* Wallets */}
+        <div className="rv-section">
+          <div className="rv-section-hdr">
+            <span className="rv-section-title">Wallets to Buy and Store Ethereum</span>
+            <button className="rv-view-all">View all</button>
           </div>
-        </div>
-      )}
-
-      {activeTab === 'news' && (
-        <div className="rv-content">
-          <div className="rv-news-list">
+          <div className="rv-wallet-grid">
             {[
-              { title: `${coin.symbol} surges ${coin.change} as institutional demand rises`, source: 'CoinDesk',    time: '2h ago' },
-              { title: `${coin.name} ecosystem grows with new DeFi protocol launch`,         source: 'CryptoSlate', time: '5h ago' },
-              { title: `Analysts predict ${coin.symbol} could reach new ATH by Q4 2025`,    source: 'Decrypt',     time: '8h ago' },
-            ].map(n => (
-              <button key={n.title} className="rv-news-item">
-                <div className="rv-news-body">
-                  <span className="rv-news-title">{n.title}</span>
-                  <span className="rv-news-meta">{n.source} · {n.time}</span>
+              {name:'Metamask', logo: metamaskLogo},
+              {name:'Ledger',   logo: ledgerLogo},
+              {name:'Trezor',   logo: trezorLogo},
+            ].map(w=>(
+              <div key={w.name} className="rv-wallet-card">
+                <div className="rv-wallet-icon">
+                  <img src={w.logo} alt={w.name} style={{width:'100%',height:'100%',objectFit:'cover',borderRadius:'inherit'}} />
                 </div>
-                <span className="msi rv-news-arr">keyboard_arrow_right</span>
-              </button>
+                <span className="rv-wallet-name">{w.name}</span>
+              </div>
             ))}
           </div>
         </div>
-      )}
+      </>)}
+
+      {activeTab === 'community' && <CommunityContent />}
+      {activeTab === 'news'      && <NewsContent />}
+
+      {/* Chat actions */}
+      <div className="rv-chat-actions">
+        {['content_copy','thumb_up','thumb_down','ios_share','more_horiz'].map(icon=>(
+          <button key={icon} className="rv-action-btn">
+            <span className="msi rv-action-icon">{icon}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="rv-divider" />
+
+      {/* Sources */}
+      <div className="rv-section">
+        <div className="rv-section-title">Sources</div>
+        <div className="rv-sources-scroll">
+          {[
+            {title:'10 big air mistakes you can avoid - air..',domain:'crypto.com'},
+            {title:'10 big air mistakes you can avoid - air..',domain:'cryptory.de'},
+            {title:'10 big air mistakes you can avoid - air..',domain:'cryptotoast.fr'},
+            {title:'10 big air mistakes you can avoid - air..',domain:'strange.love'},
+            {title:'10 big air mistakes you can avoid - air..',domain:'cryptoys.com'},
+          ].map((s,i)=>(
+            <div key={i} className="rv-source-card">
+              <p className="rv-source-title">{s.title}</p>
+              <div className="rv-source-footer">
+                <div className="rv-source-dot" />
+                <span className="rv-source-domain">{s.domain}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="rv-divider" />
+
+      {/* Related Topics */}
+      <div className="rv-section rv-section--last">
+        <div className="rv-section-title">Related Topics</div>
+        <div className="rv-related-list">
+          {[
+            "What is bitcoin's all time high?",
+            "Tell me about the top 5 biggest crypto project out in the market right now",
+            "Give me a market analysis on the top 5 performing coins in 2024",
+            "How does blockchain work?",
+          ].map(q=>(
+            <button key={q} className="rv-related-item" onClick={()=>{}}>
+              <span className="rv-related-text">{q}</span>
+              <span className="msi rv-related-arrow">chevron_right</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
     </div>
   )
 }
