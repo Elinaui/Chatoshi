@@ -150,7 +150,7 @@ function AlphaDetailView({ item, onBack }) {
   )
 }
 
-export default function AlphaView() {
+export default function AlphaView({ onMenuClick }) {
   const [selectedItem, setSelectedItem] = useState(null)
 
   if (selectedItem) {
@@ -160,6 +160,9 @@ export default function AlphaView() {
   return (
     <div className="alv-shell">
       <div className="alv-topbar">
+        <button className="pg-menu-btn" onClick={onMenuClick} title="Menu">
+          <span className="msi">menu</span>
+        </button>
         <h1 className="alv-heading">Alpha</h1>
       </div>
       <div className="alv-body">

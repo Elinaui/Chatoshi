@@ -571,23 +571,32 @@
 }
 .nb-confirm-cancel:hover { background: var(--surface-primary); }
 
-/* ── MOBILE ── */
+/* ── MOBILE: drawer overlay, opened via each page's hamburger button ── */
+.nb-scrim {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 18, 20, 0.5);
+  z-index: 999;
+  animation: nb-scrim-in 0.2s ease both;
+}
+@keyframes nb-scrim-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (max-width: 768px) {
   .navbar {
-    width: 100% !important;
-    height: var(--topbar-h) !important;
-    flex-direction: row;
-    align-items: center;
-    border-right: none;
-    border-bottom: 1px solid var(--border-primary);
-    padding: 0 12px;
-    overflow: visible;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(320px, 85vw) !important;
+    height: 100vh !important;
+    transform: translateX(-100%);
+    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.16);
   }
-  .nb-toggle { display: none; }
-  .nb-top { margin-bottom: 0; }
-  .nb-menu { flex-direction: row; flex: 1; justify-content: center; gap: 8px; }
-  .nb-item { width: auto; justify-content: center; padding: 8px; }
-  .nb-label { display: none; }
-  .nb-divider, .nb-history, .nb-footer { display: none; }
-  .nb-logo { display: none; }
+  .navbar.mobile-open {
+    transform: translateX(0);
+  }
 }

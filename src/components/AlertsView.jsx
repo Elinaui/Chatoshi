@@ -491,7 +491,7 @@ const INITIAL_ALERTS = [
   },
 ]
 
-export default function AlertsView() {
+export default function AlertsView({ onMenuClick }) {
   const [tab, setTab] = useState('alerts')
   const [alerts, setAlerts] = useState(() =>
     INITIAL_ALERTS.map(cat => ({ ...cat, items: cat.items.map(i => ({ ...i })) }))
@@ -520,6 +520,10 @@ export default function AlertsView() {
   return (
     <div className="av-shell">
       <div className="av-topbar">
+        <button className="pg-menu-btn" onClick={onMenuClick} title="Menu">
+          <span className="msi">menu</span>
+          <span className="pg-menu-btn-dot" />
+        </button>
         <h1 className="av-heading">Alerts</h1>
       </div>
 

@@ -18,7 +18,7 @@
   padding: 8px 16px;
 }
 
-.cv-topbar-left { flex: 1; }
+.cv-topbar-left { flex: 1; display: flex; align-items: center; }
 .cv-topbar-right { flex: 1; display: flex; justify-content: flex-end; }
 
 /* Mode button: icon + "Serious" + chevron, no border */

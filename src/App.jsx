@@ -12,6 +12,8 @@ function formatNow() {
 
 export default function App() {
   const [navExpanded, setNavExpanded] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [activePage, setActivePage] = useState('chat')
   const [chatState, setChatState] = useState('home')
   const [query, setQuery] = useState('')
@@ -23,7 +25,19 @@ export default function App() {
     if (saved !== null) setNavExpanded(saved === 'true')
   }, [])
 
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 768px)')
+    const update = () => setIsMobile(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
+  }, [])
+
   const toggleNav = () => {
+    if (isMobile) {
+      setMobileNavOpen(open => !open)
+      return
+    }
     setNavExpanded(prev => {
       const next = !prev
       localStorage.setItem('chatoshi_nav', String(next))
@@ -34,6 +48,7 @@ export default function App() {
   const navigate = (page) => {
     setActivePage(page)
     setActiveChat(c => c ? { ...c, active: false } : null)
+    setMobileNavOpen(false)
     if (page === 'chat') {
       setChatState('home')
       setQuery('')
@@ -61,6 +76,7 @@ export default function App() {
     setChatState('response')
     setResponseData({ query: item.title })
     setActiveChat({ id: item.id, title: item.title, time: item.time, active: true })
+    setMobileNavOpen(false)
   }
 
   const handleBack = () => {
@@ -73,8 +89,9 @@ export default function App() {
   return (
     <div className={`app-shell ${navExpanded ? 'nav-expanded' : 'nav-collapsed'}`}>
       <NavBar
-        expanded={navExpanded}
+        expanded={isMobile ? true : navExpanded}
         onToggle={toggleNav}
+        mobileOpen={mobileNavOpen}
         activePage={activePage}
         onNavigate={navigate}
         activeChat={activeChat}
@@ -90,11 +107,12 @@ export default function App() {
             onSend={handleSend}
             onBack={handleBack}
             navExpanded={navExpanded}
+            onMenuClick={toggleNav}
           />
         )}
-        {activePage === 'alerts' && <AlertsView />}
-        {activePage === 'alpha' && <AlphaView />}
-        {activePage === 'learn' && <LearnView />}
+        {activePage === 'alerts' && <AlertsView onMenuClick={toggleNav} />}
+        {activePage === 'alpha' && <AlphaView onMenuClick={toggleNav} />}
+        {activePage === 'learn' && <LearnView onMenuClick={toggleNav} />}
       </main>
     </div>
   )

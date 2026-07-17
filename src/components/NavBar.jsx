@@ -136,7 +136,7 @@ function AccountMenu({ pos, onClose, onOpenSettings }) {
   )
 }
 
-export default function NavBar({ expanded, onToggle, activePage, onNavigate, activeChat, onOpenChat }) {
+export default function NavBar({ expanded, onToggle, mobileOpen, activePage, onNavigate, activeChat, onOpenChat }) {
   const [historyGroups, setHistoryGroups] = useState(INITIAL_HISTORY)
   const [searchQ, setSearchQ] = useState('')
   const [showMenu, setShowMenu] = useState(false)
@@ -152,7 +152,9 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate, act
 
   const openAccountMenu = () => {
     const navRect = navRef.current.getBoundingClientRect()
-    setAccountMenuPos({ bottom: 12, left: navRect.right + 12 })
+    const menuWidth = 319
+    const left = Math.min(navRect.right + 12, window.innerWidth - menuWidth - 12)
+    setAccountMenuPos({ bottom: 12, left })
     setShowAccountMenu(m => !m)
   }
 
@@ -185,7 +187,8 @@ export default function NavBar({ expanded, onToggle, activePage, onNavigate, act
 
   return (
     <>
-      <aside ref={navRef} className={`navbar ${expanded ? 'expanded' : 'collapsed'}`}>
+      {mobileOpen && <div className="nb-scrim" onClick={onToggle} />}
+      <aside ref={navRef} className={`navbar ${expanded ? 'expanded' : 'collapsed'}${mobileOpen ? ' mobile-open' : ''}`}>
 
         {/* Top: logo + toggle */}
         <div className="nb-top">

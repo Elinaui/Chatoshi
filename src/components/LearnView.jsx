@@ -191,7 +191,7 @@ function LessonBadge({ num }) {
 }
 
 /* ─── Splash animation ──────────────────────────────────────── */
-export default function LearnView() {
+export default function LearnView({ onMenuClick }) {
   const [step, setStep] = useState(1)
 
   useEffect(() => {
@@ -201,7 +201,7 @@ export default function LearnView() {
     return () => { clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
   }, [])
 
-  if (step === 4) return <EducationNav />
+  if (step === 4) return <EducationNav onMenuClick={onMenuClick} />
 
   return (
     <div className="lv-splash">
@@ -218,7 +218,7 @@ export default function LearnView() {
 }
 
 /* ─── Top-level navigator ───────────────────────────────────── */
-function EducationNav() {
+function EducationNav({ onMenuClick }) {
   const [view, setView]             = useState('levels')
   const [selectedLevel, setLevel]   = useState(null)
   const [selectedModule, setModule] = useState(null)
@@ -253,14 +253,17 @@ function EducationNav() {
       />
     )
   }
-  return <LevelsView onLevelClick={lvl => { setLevel(lvl); setView('modules') }} />
+  return <LevelsView onLevelClick={lvl => { setLevel(lvl); setView('modules') }} onMenuClick={onMenuClick} />
 }
 
 /* ─── View 1: Education Levels ──────────────────────────────── */
-function LevelsView({ onLevelClick }) {
+function LevelsView({ onLevelClick, onMenuClick }) {
   return (
     <div className="lv-shell lv-shell--enter">
       <div className="lv-topbar">
+        <button className="pg-menu-btn" onClick={onMenuClick} title="Menu">
+          <span className="msi">menu</span>
+        </button>
         <h1 className="lv-heading">Education</h1>
       </div>
       <div className="lv-body">

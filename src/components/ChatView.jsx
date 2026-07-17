@@ -199,7 +199,7 @@ function TopbarMenu() {
   )
 }
 
-export default function ChatView({ state, query, responseData, onSearch, onSend, onBack }) {
+export default function ChatView({ state, query, responseData, onSearch, onSend, onBack, onMenuClick }) {
   const [input, setInput]   = useState('')
   const [focused, setFocused] = useState(false)
   const inputRef = useRef(null)
@@ -229,7 +229,11 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
 
       {/* ── Top bar: transparent, Serious mode + temp-chat button ── */}
       <div className="cv-topbar">
-        <div className="cv-topbar-left" />
+        <div className="cv-topbar-left">
+          <button className="pg-menu-btn" onClick={onMenuClick} title="Menu">
+            <span className="msi">menu</span>
+          </button>
+        </div>
 
         <button className="cv-mode-btn">
           <img src={chatoshiLogo} alt="" className="cv-mode-logo" />

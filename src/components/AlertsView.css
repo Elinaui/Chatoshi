@@ -11,6 +11,7 @@
   height: 56px;
   display: flex;
   align-items: center;
+  gap: 8px;
   padding: 8px 16px;
   flex-shrink: 0;
 }
@@ -979,4 +980,5 @@
 @media (max-width: 768px) {
   .av-detail-info { flex-direction: column; }
   .av-influencer-card { width: 100%; }
+  .av-topbar { border-bottom: 1px solid var(--border-primary); }
 }

@@ -109,3 +109,35 @@ input, textarea { font-family: inherit; border: none; outline: none; background:
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border-primary); border-radius: 4px; }
+
+/* Mobile-only hamburger button shown in each page's topbar to open the nav drawer */
+.pg-menu-btn {
+  position: relative;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border-primary);
+  border-radius: var(--r12);
+  background: var(--bg-floating);
+  color: var(--text-primary);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+.pg-menu-btn:hover { background: var(--surface-primary); }
+
+.pg-menu-btn-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--error-strong, #c4343b);
+  border: 1.5px solid var(--bg-floating);
+}
+
+@media (max-width: 768px) {
+  .pg-menu-btn { display: flex; }
+}
