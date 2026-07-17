@@ -279,7 +279,7 @@ export default function ChatView({ state, query, responseData, onSearch, onSend,
 
       {/* ── Floating input (search + response states only) ── */}
       {state !== 'home' && (
-        <div className="cv-input-area">
+        <div className={`cv-input-area${state === 'response' ? ' cv-input-area--response' : ''}`}>
           <PromptInput
             value={displayValue}
             focused={focused}

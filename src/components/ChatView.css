@@ -76,7 +76,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px 24px;
+  padding: 32px 48px;
 }
 
 .home-center {
@@ -198,8 +198,15 @@
 /* ─── FLOATING INPUT (search / response states) ─── */
 .cv-input-area {
   flex-shrink: 0;
-  padding: 8px 24px 16px;
+  padding: 8px 48px 16px;
   background: linear-gradient(to top, #fcfdfd 75%, rgba(252, 253, 253, 0.02));
+}
+
+/* Response state: cv-input-area's own 48px padding mirrors .rv-shell's, so capping
+   the prompt at .rv-shell's content width (760px box minus its 48px each side)
+   lines the composer up exactly with the response cards above it. */
+.cv-input-area--response .cv-prompt {
+  max-width: calc(760px - 96px);
 }
 
 /* ─── PROMPT INPUT (shared) ─── */
@@ -249,7 +256,7 @@
 
 /* ─── SEARCH ─── */
 .search-view {
-  padding: 24px 24px 120px;
+  padding: 24px 48px 120px;
   max-width: 800px;
   margin: 0 auto;
   width: 100%;
@@ -348,7 +355,7 @@
 .rv-shell {
   max-width: 760px;
   margin: 0 auto;
-  padding: 24px 24px 120px;
+  padding: 24px 48px 120px;
   width: 100%;
   display: flex;
   flex-direction: column;
